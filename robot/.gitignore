@@ -1,0 +1,39 @@
+# Robot Framework Test Results
+results/
+*.html
+*.xml
+output.xml
+log.html
+report.html
+
+# Test execution logs
+*.log
+robot_run.log
+dirshare_*.log
+
+# Python Virtual Environment
+venv/
+env/
+ENV/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary test files and directories
+tmp/
+temp/
+*.tmp

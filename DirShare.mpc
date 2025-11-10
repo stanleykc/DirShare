@@ -1,0 +1,61 @@
+// DirShare.mpc - MPC project for DirShare example
+
+project(*idl): dcps {
+  requires += no_opendds_safety_profile
+  TypeSupport_Files {
+    DirShare.idl
+  }
+
+  custom_only = 1
+}
+
+project(*lib): dcpslib, dcps_tcp, dcps_rtps_udp {
+  requires += no_opendds_safety_profile
+  sharedname = DirShare
+  after     += *idl
+
+  TypeSupport_Files {
+    DirShare.idl
+  }
+
+  Source_Files {
+    FileMonitor.cpp
+    FileChangeTracker.cpp
+    Checksum.cpp
+    FileUtils.cpp
+    SnapshotListenerImpl.cpp
+    FileContentListenerImpl.cpp
+    FileChunkListenerImpl.cpp
+    FileEventListenerImpl.cpp
+  }
+
+  Header_Files {
+    FileMonitor.h
+    FileChangeTracker.h
+    Checksum.h
+    FileUtils.h
+    SnapshotListenerImpl.h
+    FileContentListenerImpl.h
+    FileChunkListenerImpl.h
+    FileEventListenerImpl.h
+  }
+}
+
+project(*dirshare): dcpsexe, dcps_tcp, dcps_rtps_udp {
+  requires += no_opendds_safety_profile
+  exename   = dirshare
+  after    += *lib
+
+  libs     += DirShare
+
+  TypeSupport_Files {
+    DirShare.idl
+  }
+
+  Source_Files {
+    DirShare.cpp
+  }
+
+  Header_Files {
+  }
+}

@@ -1,0 +1,5 @@
+# Robot Framework Requirements for DirShare Acceptance Tests
+# Install: pip install -r requirements.txt
+
+# Core Robot Framework (includes Process, OperatingSystem, DateTime libraries)
+robotframework>=6.0

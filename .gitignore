@@ -1,0 +1,56 @@
+# IDL compiler generated files
+DirShareTypeSupport.idl
+DirShareTypeSupportImpl.h
+DirShareTypeSupportImpl.cpp
+DirShareC.h
+DirShareC.cpp
+DirShareC.inl
+DirShareS.h
+DirShareS.cpp
+DirShareTypeSupportC.h
+DirShareTypeSupportC.cpp
+DirShareTypeSupportC.inl
+DirShareTypeSupportS.h
+DirShareTypeSupportS.cpp
+DirShare_export.h
+
+# Main application executable
+/dirshare
+
+# Shared library (additional patterns)
+/libDirShare.so
+/libDirShare.so.*
+/libDirShare.dylib
+/libDirShare.a
+
+# Test executables
+/tests/ChecksumBoostTest
+/tests/FileUtilsBoostTest
+/tests/FileMonitorBoostTest
+/tests/FileChangeTrackerBoostTest
+/tests/DirectorySnapshotBoostTest
+/tests/FileContentBoostTest
+/tests/FileChunkBoostTest
+/tests/FileEventCreateBoostTest
+/tests/FileMonitorCreateBoostTest
+/tests/FileEventModifyBoostTest
+/tests/TimestampComparisonBoostTest
+
+# Test-generated directories and files
+/tests/test_phase4_dir1/
+/tests/test_phase4_dir2/
+/tests/test_*/
+
+# Build artifacts (additional to root .gitignore)
+*.o
+.obj/
+.shobj/
+.depend.*
+.depend*.bak
+GNUmakefile*
+
+# Temporary and log files
+*.log
+*.ior
+core
+core.*

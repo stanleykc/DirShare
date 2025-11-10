@@ -1,0 +1,72 @@
+// DirShare.idl - Data types for distributed file synchronization
+
+module DirShare {
+
+  // Enumeration for file operation types
+  enum OperationType {
+    CREATE,   // File was created
+    MODIFY,   // File was modified
+    DELETE    // File was deleted
+  };
+
+  // File metadata structure
+  // Contains file properties without the actual content
+  @topic
+  struct FileMetadata {
+    @key string filename;              // Relative path within shared directory
+    unsigned long long size;           // File size in bytes
+    unsigned long long timestamp_sec;  // Modification time (seconds since epoch)
+    unsigned long timestamp_nsec;      // Modification time (nanoseconds part)
+    unsigned long checksum;            // CRC32 checksum of file content
+  };
+
+  // File event structure
+  // Used to signal file operations (create, modify, delete)
+  @topic
+  struct FileEvent {
+    @key string filename;              // Relative path within shared directory
+    OperationType operation;           // Type of operation
+    unsigned long long timestamp_sec;  // Event timestamp (seconds)
+    unsigned long timestamp_nsec;      // Event timestamp (nanoseconds)
+    FileMetadata metadata;             // Associated file metadata (empty for DELETE)
+  };
+
+  // File content structure (for small files < 10MB)
+  // Contains the actual file data as a single message
+  @topic
+  struct FileContent {
+    @key string filename;              // Relative path within shared directory
+    sequence<octet> data;              // File content as binary data
+    unsigned long long size;           // File size (redundant with data.length, for validation)
+    unsigned long checksum;            // CRC32 checksum for integrity verification
+    unsigned long long timestamp_sec;  // Modification time (seconds)
+    unsigned long timestamp_nsec;      // Modification time (nanoseconds)
+  };
+
+  // File chunk structure (for large files >= 10MB)
+  // Large files are split into 1MB chunks for efficient transfer
+  @topic
+  struct FileChunk {
+    @key string filename;              // Relative path within shared directory
+    @key unsigned long chunk_id;       // Chunk sequence number (0-based)
+    sequence<octet> data;              // Chunk data (max 1MB)
+    unsigned long total_chunks;        // Total number of chunks for this file
+    unsigned long long file_size;      // Total file size (all chunks)
+    unsigned long file_checksum;       // CRC32 checksum of complete file
+    unsigned long chunk_checksum;      // CRC32 checksum of this chunk
+    unsigned long long timestamp_sec;  // File modification time (seconds)
+    unsigned long timestamp_nsec;      // File modification time (nanoseconds)
+  };
+
+  // Directory snapshot structure
+  // Used for initial synchronization when a participant joins
+  @topic
+  struct DirectorySnapshot {
+    @key string participant_id;        // Unique ID of the participant sending snapshot
+    sequence<FileMetadata> files;      // List of all files in shared directory
+    unsigned long long snapshot_time_sec;   // Snapshot timestamp (seconds)
+    unsigned long snapshot_time_nsec;       // Snapshot timestamp (nanoseconds)
+    unsigned long file_count;          // Number of files in snapshot
+  };
+
+};

@@ -1,0 +1,241 @@
+// MPC file for DirShare unit tests
+
+
+// Boost.Test unit tests
+
+project(*ChecksumBoostTest): aceexe, dcps {
+  exename = ChecksumBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    ChecksumBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileUtilsBoostTest): aceexe, dcps {
+  exename = FileUtilsBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileUtilsBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileMonitorBoostTest): aceexe, dcps {
+  exename = FileMonitorBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileMonitorBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileChangeTrackerBoostTest): aceexe, dcps {
+  exename = FileChangeTrackerBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileChangeTrackerBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration for SC-011 notification loop prevention
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+// User Story 1 Boost.Test suites
+
+project(*DirectorySnapshotBoostTest): aceexe, dcps {
+  exename = DirectorySnapshotBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    DirectorySnapshotBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileContentBoostTest): aceexe, dcps {
+  exename = FileContentBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileContentBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileChunkBoostTest): aceexe, dcps {
+  exename = FileChunkBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileChunkBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+// User Story 2 Boost.Test suites
+
+project(*FileEventCreateBoostTest): aceexe, dcps {
+  exename = FileEventCreateBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileEventCreateBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*FileMonitorCreateBoostTest): aceexe, dcps {
+  exename = FileMonitorCreateBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileMonitorCreateBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+// User Story 3 Boost.Test suites
+
+project(*FileEventModifyBoostTest): aceexe, dcps {
+  exename = FileEventModifyBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    FileEventModifyBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
+
+project(*TimestampComparisonBoostTest): aceexe, dcps {
+  exename = TimestampComparisonBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    TimestampComparisonBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
