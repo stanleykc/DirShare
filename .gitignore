@@ -35,6 +35,8 @@ DirShare_export.h
 /tests/FileMonitorCreateBoostTest
 /tests/FileEventModifyBoostTest
 /tests/TimestampComparisonBoostTest
+/tests/FileEventDeleteBoostTest
+/tests/MetadataPreservationBoostTest
 
 # Test-generated directories and files
 /tests/test_phase4_dir1/
@@ -54,3 +56,14 @@ GNUmakefile*
 *.ior
 core
 core.*
+
+# Memory leak testing artifacts
+MEMORY_LEAK_TEST_REPORT.md
+asan_tests*
+asan_unit*
+/tmp/leaks_report.txt
+/tmp/dirshare_leak.log
+
+# Integration test directories
+run_test_dir_*/
+leak_test_*/

@@ -125,6 +125,28 @@ perl run_test.pl
 perl run_test.pl --rtps
 ```
 
+### Memory Leak Testing (AddressSanitizer)
+
+Test for memory leaks and memory safety issues:
+
+```bash
+# Quick start
+./build_with_asan.sh    # Build with AddressSanitizer
+./run_leak_tests.sh     # Run all leak tests
+
+# Or run specific tests
+./run_leak_tests.sh unit      # Unit tests only
+./run_leak_tests.sh dirshare  # Integration test only
+```
+
+**See [docs/LEAK_TESTING.md](docs/LEAK_TESTING.md) for detailed guide**
+
+**Features:**
+- AddressSanitizer detects memory errors (buffer overflows, use-after-free, etc.)
+- Automated test runner for unit and integration tests
+- macOS `leaks` tool integration for leak detection
+- Comprehensive documentation and troubleshooting
+
 ### Acceptance Tests (Robot Framework)
 
 Test user stories end-to-end:
