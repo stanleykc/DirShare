@@ -348,9 +348,9 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     DDS::DataReaderListener_var snapshot_listener =
       new DirShare::SnapshotListenerImpl(g_shared_directory, content_writer, chunk_writer);
     DDS::DataReaderListener_var content_listener =
-      new DirShare::FileContentListenerImpl(g_shared_directory);
+      new DirShare::FileContentListenerImpl(g_shared_directory, change_tracker);
     DDS::DataReaderListener_var chunk_listener =
-      new DirShare::FileChunkListenerImpl(g_shared_directory);
+      new DirShare::FileChunkListenerImpl(g_shared_directory, change_tracker);
 
     // Create DataReaders with listeners
     DDS::DataReader_var event_reader =

@@ -7,8 +7,10 @@
 
 namespace DirShare {
 
-FileContentListenerImpl::FileContentListenerImpl(const std::string& shared_dir)
+FileContentListenerImpl::FileContentListenerImpl(const std::string& shared_dir,
+                                                   FileChangeTracker& change_tracker)
   : shared_dir_(shared_dir)
+  , change_tracker_(change_tracker)
 {
 }
 
@@ -109,6 +111,8 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
         ACE_DEBUG((LM_INFO,
                    ACE_TEXT("(%P|%t) Local file is newer or same, ignoring FileContent for: %C\n"),
                    filename.c_str()));
+        // Resume notifications even when rejecting update (SC-011: prevent permanent suppression)
+        change_tracker_.resume_notifications(filename);
         return;
       }
 
@@ -131,6 +135,8 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
                  filename.c_str(),
                  content.checksum,
                  computed_checksum));
+      // Resume notifications on error (SC-011: prevent permanent suppression)
+      change_tracker_.resume_notifications(filename);
       return;
     }
   }
@@ -142,6 +148,8 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
     ACE_ERROR((LM_ERROR,
                ACE_TEXT("ERROR: %N:%l: Failed to write file: %C\n"),
                full_path.c_str()));
+    // Resume notifications on error (SC-011: prevent permanent suppression)
+    change_tracker_.resume_notifications(filename);
     return;
   }
 
@@ -158,6 +166,12 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
              filename.c_str(),
              content.size,
              content.checksum));
+
+  // Resume notifications for this file (SC-011: prevent notification loop)
+  change_tracker_.resume_notifications(filename);
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Resumed notifications for file: %C\n"),
+             filename.c_str()));
 }
 
 } // namespace DirShare

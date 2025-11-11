@@ -6,8 +6,10 @@
 
 namespace DirShare {
 
-FileChunkListenerImpl::FileChunkListenerImpl(const std::string& shared_dir)
+FileChunkListenerImpl::FileChunkListenerImpl(const std::string& shared_dir,
+                                               FileChangeTracker& change_tracker)
   : shared_dir_(shared_dir)
+  , change_tracker_(change_tracker)
 {
 }
 
@@ -200,6 +202,8 @@ void FileChunkListenerImpl::finalize_file(
         ACE_DEBUG((LM_INFO,
                    ACE_TEXT("(%P|%t) Local file is newer or same, ignoring FileChunk reassembly for: %C\n"),
                    filename.c_str()));
+        // Resume notifications even when rejecting update (SC-011: prevent permanent suppression)
+        change_tracker_.resume_notifications(filename);
         return;
       }
 
@@ -221,6 +225,8 @@ void FileChunkListenerImpl::finalize_file(
                filename.c_str(),
                chunked_file.file_checksum,
                computed_checksum));
+    // Resume notifications on error (SC-011: prevent permanent suppression)
+    change_tracker_.resume_notifications(filename);
     return;
   }
 
@@ -231,6 +237,8 @@ void FileChunkListenerImpl::finalize_file(
     ACE_ERROR((LM_ERROR,
                ACE_TEXT("ERROR: %N:%l: Failed to write reassembled file: %C\n"),
                full_path.c_str()));
+    // Resume notifications on error (SC-011: prevent permanent suppression)
+    change_tracker_.resume_notifications(filename);
     return;
   }
 
@@ -247,6 +255,12 @@ void FileChunkListenerImpl::finalize_file(
              filename.c_str(),
              chunked_file.file_size,
              chunked_file.file_checksum));
+
+  // Resume notifications for this file (SC-011: prevent notification loop)
+  change_tracker_.resume_notifications(filename);
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Resumed notifications for file: %C\n"),
+             filename.c_str()));
 }
 
 } // namespace DirShare

@@ -196,8 +196,8 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T069 [US2] Connect FileEvent CREATE to FileContent/FileChunk request logic
 - [X] T070 [US2] Add validation that file doesn't already exist locally before writing in FileEventListenerImpl
 - [X] T071 [US2] Add ACE logging for file creation events (detected, published, received, applied)
-- [ ] T071a [US2] Update FileEvent CREATE handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
-- [ ] T071b [US2] Update FileMonitor CREATE publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
+- [X] T071a [US2] Update FileEvent CREATE handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
+- [X] T071b [US2] Update FileMonitor CREATE publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
 
 ### Boost.Test Unit Tests for User Story 2 🎯 NEW ✅ COMPLETE
 
@@ -209,7 +209,7 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T077 [P] [US2] Create Boost.Test suite for FileMonitor CREATE detection in `tests/FileMonitorCreateBoostTest.cpp`
 - [X] T078 [P] [US2] Add Boost.Test cases for scan state comparison in `tests/FileMonitorCreateBoostTest.cpp`
 - [X] T079 [US2] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
-- [ ] T079a [P] [US2] Add Boost.Test cases for notification loop prevention in CREATE flow in `tests/FileEventCreateBoostTest.cpp` (verify remote changes don't republish)
+- [X] T079a [P] [US2] Add Boost.Test cases for notification loop prevention in CREATE flow in `tests/FileEventCreateBoostTest.cpp` (verify remote changes don't republish)
 
 **Checkpoint**: Real-time file creation working with comprehensive Boost.Test coverage including notification loop prevention (SC-011)
 
@@ -230,8 +230,8 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T084 [US3] Add logic to overwrite local file only if remote timestamp is newer in FileEventListenerImpl
 - [X] T085 [US3] Add ACE logging for modification events with timestamp comparisons
 - [X] T086 [US3] Add instrumentation to verify only modified files are transferred (not all files)
-- [ ] T086a [US3] Update FileEvent MODIFY handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
-- [ ] T086b [US3] Update FileMonitor MODIFY publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
+- [X] T086a [US3] Update FileEvent MODIFY handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
+- [X] T086b [US3] Update FileMonitor MODIFY publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
 
 ### Boost.Test Unit Tests for User Story 3 🎯 NEW ✅ COMPLETE
 
@@ -243,7 +243,7 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T092 [P] [US3] Add Boost.Test cases for DDS source_timestamp extraction in `tests/TimestampComparisonBoostTest.cpp`
 - [X] T093 [P] [US3] Add Boost.Test cases for efficiency verification (only modified files) in `tests/FileEventModifyBoostTest.cpp`
 - [X] T094 [US3] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
-- [ ] T094a [P] [US3] Add Boost.Test cases for notification loop prevention in MODIFY flow in `tests/FileEventModifyBoostTest.cpp` (verify remote changes don't republish)
+- [X] T094a [P] [US3] Add Boost.Test cases for notification loop prevention in MODIFY flow in `tests/FileEventModifyBoostTest.cpp` (verify remote changes don't republish)
 
 **Checkpoint**: File modification propagation working with comprehensive Boost.Test coverage including notification loop prevention (SC-011)
 

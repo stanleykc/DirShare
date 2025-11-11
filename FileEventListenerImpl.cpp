@@ -104,6 +104,14 @@ void FileEventListenerImpl::handle_create_event(const FileEvent& event)
     return;
   }
 
+  // Suppress notifications for this file (SC-011: prevent notification loop)
+  // This prevents FileMonitor from republishing a CREATE event when the remote
+  // file content arrives and is written to disk
+  change_tracker_.suppress_notifications(filename);
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Suppressed notifications for incoming file: %C\n"),
+             filename.c_str()));
+
   // File will be received via FileContent or FileChunk topic
   // The listener will handle writing the file when content arrives
   ACE_DEBUG((LM_INFO,
@@ -125,7 +133,12 @@ void FileEventListenerImpl::handle_modify_event(const FileEvent& event)
     ACE_DEBUG((LM_INFO,
                ACE_TEXT("(%P|%t) Local file does not exist, treating MODIFY as CREATE: %C\n"),
                filename.c_str()));
+    // Suppress notifications (SC-011: prevent notification loop)
     // File will be received via FileContent or FileChunk topic
+    change_tracker_.suppress_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Suppressed notifications for incoming MODIFY (treated as CREATE): %C\n"),
+               filename.c_str()));
     return;
   }
 
@@ -163,6 +176,13 @@ void FileEventListenerImpl::handle_modify_event(const FileEvent& event)
   if (remote_is_newer) {
     ACE_DEBUG((LM_INFO,
                ACE_TEXT("(%P|%t) Remote file is newer, accepting MODIFY for: %C\n"),
+               filename.c_str()));
+    // Suppress notifications (SC-011: prevent notification loop)
+    // This prevents FileMonitor from republishing a MODIFY event when the remote
+    // file content arrives and overwrites the local file
+    change_tracker_.suppress_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Suppressed notifications for incoming MODIFY: %C\n"),
                filename.c_str()));
     // File will be received via FileContent or FileChunk topic
     // The listener will overwrite the local file
