@@ -207,8 +207,9 @@ BOOST_AUTO_TEST_CASE(test_timestamp_file_operations)
   unsigned long ts1_nsec;
   BOOST_REQUIRE(DirShare::get_file_mtime(path, ts1_sec, ts1_nsec));
 
-  // Wait to ensure timestamp changes
-  ACE_OS::sleep(ACE_Time_Value(0, 100000)); // 100ms
+  // Wait to ensure timestamp changes (2 seconds for filesystems with 1-second granularity like HFS+)
+  // This ensures even on filesystems with 1-second resolution, we'll see a change
+  ACE_OS::sleep(ACE_Time_Value(2, 0)); // 2 seconds
 
   // Modify file
   std::ofstream file(path.c_str());
@@ -220,7 +221,7 @@ BOOST_AUTO_TEST_CASE(test_timestamp_file_operations)
   unsigned long ts2_nsec;
   BOOST_REQUIRE(DirShare::get_file_mtime(path, ts2_sec, ts2_nsec));
 
-  // Second timestamp should be newer
+  // Second timestamp should be newer (guaranteed with 2-second wait)
   bool ts2_newer = is_timestamp_newer(ts2_sec, ts2_nsec, ts1_sec, ts1_nsec);
   BOOST_CHECK(ts2_newer);
 }
