@@ -122,6 +122,19 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
     }
   }
 
+  // Validate metadata: size matches actual data length
+  if (content.size != content.data.length()) {
+    ACE_ERROR((LM_ERROR,
+               ACE_TEXT("ERROR: %N:%l: Size mismatch for file %C\n")
+               ACE_TEXT("  Metadata size: %Q, Actual data length: %u\n"),
+               filename.c_str(),
+               content.size,
+               content.data.length()));
+    // Resume notifications on error (SC-011: prevent permanent suppression)
+    change_tracker_.resume_notifications(filename);
+    return;
+  }
+
   // Verify checksum
   if (content.data.length() > 0) {
     uint32_t computed_checksum = compute_checksum(
@@ -154,11 +167,30 @@ void FileContentListenerImpl::process_file_content(const FileContent& content)
   }
 
   // Preserve timestamp
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Preserving timestamp for %C: %Q.%09u\n"),
+             filename.c_str(),
+             content.timestamp_sec,
+             content.timestamp_nsec));
+
   if (!set_file_mtime(full_path, content.timestamp_sec, content.timestamp_nsec)) {
     ACE_ERROR((LM_WARNING,
                ACE_TEXT("WARNING: %N:%l: Failed to set timestamp for file: %C\n"),
                full_path.c_str()));
     // Don't fail the operation - file was written successfully
+  } else {
+    // Verify timestamp was preserved correctly
+    unsigned long long verified_sec;
+    unsigned long verified_nsec;
+    if (get_file_mtime(full_path, verified_sec, verified_nsec)) {
+      ACE_DEBUG((LM_DEBUG,
+                 ACE_TEXT("(%P|%t) Timestamp preserved for %C: original=%Q.%09u, actual=%Q.%09u\n"),
+                 filename.c_str(),
+                 content.timestamp_sec,
+                 content.timestamp_nsec,
+                 verified_sec,
+                 verified_nsec));
+    }
   }
 
   ACE_DEBUG((LM_INFO,

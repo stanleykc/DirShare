@@ -79,6 +79,11 @@ print "${YELLOW}--- Phase 6: User Story 4 (File Deletion) Tests ---${NC}\n\n";
 # Run Phase 6 Boost.Test suites (US4 - Real-Time File Deletion)
 $status |= run_test("FileEventDeleteBoostTest", "FileEventDeleteBoostTest");
 
+print "${YELLOW}--- Phase 8: User Story 6 (Metadata Preservation) Tests ---${NC}\n\n";
+
+# Run Phase 8 Boost.Test suites (US6 - Metadata Transfer and Preservation)
+$status |= run_test("MetadataPreservationBoostTest", "MetadataPreservationBoostTest");
+
 # Summary
 print "╔══════════════════════════════════════════════╗\n";
 print "║              Test Summary                    ║\n";

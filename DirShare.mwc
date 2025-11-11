@@ -1,0 +1,19 @@
+// DirShare.mwc - MPC Workspace for DirShare project
+//
+// This workspace builds the entire DirShare project including:
+// - IDL type support generation
+// - DirShare shared library
+// - DirShare executable
+// - All Boost.Test unit tests
+//
+// Usage from top-level directory:
+//   mwc.pl -type gnuace        # Generate all makefiles
+//   make                        # Build everything
+
+workspace {
+  // Main project (IDL, library, executable)
+  DirShare.mpc
+
+  // Unit tests
+  tests/tests.mpc
+}

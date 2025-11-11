@@ -243,11 +243,30 @@ void FileChunkListenerImpl::finalize_file(
   }
 
   // Preserve timestamp
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Preserving timestamp for reassembled file %C: %Q.%09u\n"),
+             filename.c_str(),
+             chunked_file.timestamp_sec,
+             chunked_file.timestamp_nsec));
+
   if (!set_file_mtime(full_path, chunked_file.timestamp_sec, chunked_file.timestamp_nsec)) {
     ACE_ERROR((LM_WARNING,
                ACE_TEXT("WARNING: %N:%l: Failed to set timestamp for file: %C\n"),
                full_path.c_str()));
     // Don't fail the operation - file was written successfully
+  } else {
+    // Verify timestamp was preserved correctly
+    unsigned long long verified_sec;
+    unsigned long verified_nsec;
+    if (get_file_mtime(full_path, verified_sec, verified_nsec)) {
+      ACE_DEBUG((LM_DEBUG,
+                 ACE_TEXT("(%P|%t) Timestamp preserved for %C: original=%Q.%09u, actual=%Q.%09u\n"),
+                 filename.c_str(),
+                 chunked_file.timestamp_sec,
+                 chunked_file.timestamp_nsec,
+                 verified_sec,
+                 verified_nsec));
+    }
   }
 
   ACE_DEBUG((LM_INFO,

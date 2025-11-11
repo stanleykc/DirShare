@@ -262,3 +262,27 @@ project(*FileEventDeleteBoostTest): aceexe, dcps {
   // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
   // No additional libs needed with included/unit_test.hpp
 }
+
+// User Story 6 Boost.Test suites - Metadata Transfer and Preservation
+
+project(*MetadataPreservationBoostTest): aceexe, dcps {
+  exename = MetadataPreservationBoostTest
+  after  += DirShare_lib
+
+  libs += DirShare
+  libpaths += ..
+
+  includes += /opt/homebrew/include
+
+  Source_Files {
+    MetadataPreservationBoostTest.cpp
+  }
+
+  Header_Files {
+  }
+
+  // Boost.Test configuration for metadata preservation (US6)
+  // Tests timestamp extraction, preservation, validation, and special character handling
+  // Note: Boost.Test is header-only with BOOST_TEST_INCLUDED
+  // No additional libs needed with included/unit_test.hpp
+}
