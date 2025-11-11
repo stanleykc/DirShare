@@ -18,8 +18,8 @@ Test Teardown    Teardown Test Environment
 
 *** Variables ***
 ${DISCOVERY_MODE}    inforepo    # Can be overridden: --variable DISCOVERY_MODE:rtps
-${SYNC_TIMEOUT}      20          # Seconds to wait for initial synchronization and DDS discovery
-${PROPAGATION_TIMEOUT}    10     # Seconds to wait for file propagation (FileMonitor polls every 2s + transfer time)
+${SYNC_TIMEOUT}      10          # Seconds to wait for initial synchronization and DDS discovery
+${PROPAGATION_TIMEOUT}    5     # Seconds to wait for file propagation (FileMonitor polls every 2s + transfer time)
 ${FILEMONITOR_INTERVAL}    3     # Wait for FileMonitor polling interval (2s) plus buffer
 
 *** Keywords ***

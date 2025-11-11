@@ -50,7 +50,7 @@ Append To File
     [Documentation]    Append content to an existing file
     [Arguments]    ${filepath}    ${content_to_append}
     File Should Exist    ${filepath}
-    Append To File    ${filepath}    ${content_to_append}
+    OperatingSystem.Append To File    ${filepath}    ${content_to_append}
     Log    Appended to file ${filepath}: ${content_to_append}
 
 Delete File
@@ -110,14 +110,14 @@ Get File Checksum
 Verify File Checksum
     [Documentation]    Verify that a file has expected checksum
     [Arguments]    ${filepath}    ${expected_checksum}
-    ${match}=    Verify File Checksum    ${filepath}    ${expected_checksum}
+    ${match}=    ChecksumLibrary.Verify File Checksum    ${filepath}    ${expected_checksum}
     Should Be True    ${match}    msg=File checksum mismatch
     Log    File checksum verified for ${filepath}
 
 Get File Size
     [Documentation]    Get the size of a file in bytes
     [Arguments]    ${filepath}
-    ${size}=    Get File Size    ${filepath}
+    ${size}=    OperatingSystem.Get File Size    ${filepath}
     Log    File size for ${filepath}: ${size} bytes
     RETURN    ${size}
 
