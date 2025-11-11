@@ -1,27 +1,36 @@
 <!--
-Sync Impact Report - 2025-10-31
+Sync Impact Report - 2025-11-11
 
-Version Change: 1.0.0 → 1.1.0
-Type: MINOR - Added Version Control Hygiene principle
+Version Change: 1.1.0 → 1.2.0
+Type: MINOR - Expanded testing and structure flexibility for modern examples
 
 Modified Principles:
-- V. Standard Project Structure - Added `.gitignore` requirement
-- NEW: VI. Version Control Hygiene - Comprehensive .gitignore requirements
+- IV. Test-Driven Validation - Added Options A/B/C for testing approaches (Perl, CMake, modern frameworks)
+- V. Standard Project Structure - Added peer-to-peer/hybrid example structure pattern
 
-Added Sections:
-- Version Control Hygiene principle with detailed .gitignore patterns
+Changes Summary:
+- Test-Driven Validation now explicitly allows CMake test integration (`opendds_add_test`) and modern frameworks (Robot Framework, pytest)
+- Standard Project Structure now distinguishes between traditional pub/sub examples and peer-to-peer hybrid examples
+- Unit tests MAY be located in `tests/` subdirectory (explicitly documented)
+- Peer-to-peer examples MUST document architectural justification in README
 
 Templates Requiring Updates:
-✅ plan-template.md - Constitution Check section compatible
+✅ plan-template.md - Constitution Check section compatible (flexible testing approaches)
 ✅ spec-template.md - Requirements structure compatible
 ✅ tasks-template.md - Task organization compatible
 
 Follow-up TODOs: None
 
-Previous Sync Report - 2025-10-30:
-Version Change: [INITIAL] → 1.0.0
-Type: MINOR - Initial constitution creation for OpenDDS examples
-Modified Principles: I-V (IDL-First, Dual Discovery, Complete DDS Lifecycle, Test-Driven Validation, Standard Project Structure)
+Rationale for MINOR bump:
+- New testing options (CMake, Robot Framework) are additive, not breaking changes
+- Peer-to-peer structure pattern codifies existing practice for complex examples
+- All previous requirements remain valid; new options expand acceptable implementations
+- Backward compatible: examples following 1.1.0 patterns remain compliant
+
+Previous Sync Report - 2025-10-31:
+Version Change: 1.0.0 → 1.1.0
+Type: MINOR - Added Version Control Hygiene principle
+Modified Principles: V (Standard Project Structure), NEW VI (Version Control Hygiene)
 -->
 
 # OpenDDS Example Constitution
@@ -76,11 +85,12 @@ Examples MUST demonstrate the full DDS entity lifecycle including proper initial
 
 All components must be validated through automated unit tests using Boost to ensure correct functionality and prevent regressions.
 
-Every example MUST include automated testing via Perl launcher scripts that validate publisher-subscriber communication.
-
-
+Every example MUST include automated testing that validates publisher-subscriber communication in both InfoRepo and RTPS modes.
 
 **Requirements**:
+Examples MUST provide integration testing through ONE of the following approaches:
+
+**Option A: Traditional Perl Integration Tests**
 - Provide `run_test.pl` using PerlDDS::Run_Test framework
 - Test MUST start subscriber before publisher (standard pattern)
 - Test MUST validate both InfoRepo and RTPS modes
@@ -89,13 +99,32 @@ Every example MUST include automated testing via Perl launcher scripts that vali
 - Configure debug levels for troubleshooting (`dcps_debug_level`, `dcps_transport_debug_level`)
 - Test script MUST return 0 on success, non-zero on failure
 
-**Rationale**: Automated tests ensure examples remain functional across OpenDDS releases, demonstrate correct startup ordering, and provide diagnostic output patterns for debugging real applications.
+**Option B: CMake Test Integration**
+- Use `opendds_add_test()` with `NAME info_repo` for InfoRepo mode
+- Use `opendds_add_test()` with `NAME rtps ARGS --rtps` for RTPS mode
+- Tests MUST validate application functionality in both discovery modes
+- MAY be combined with additional testing frameworks (Robot Framework, pytest, etc.)
+
+**Option C: Modern Test Frameworks**
+- Use Robot Framework, pytest, or equivalent test automation framework
+- MUST provide test scenarios for both InfoRepo and RTPS discovery modes
+- MUST validate core application functionality (data exchange, synchronization, etc.)
+- MUST provide test runner scripts with clear pass/fail exit codes
+
+**Unit Testing**:
+- Unit tests MAY be located in `tests/` subdirectory
+- Unit test runner scripts (e.g., `tests/run_tests.pl`) are acceptable
+- Unit tests SHOULD use Boost.Test or equivalent C++ testing framework
+
+**Rationale**: Automated tests ensure examples remain functional across OpenDDS releases, demonstrate correct startup ordering, and provide diagnostic output patterns for debugging real applications. Modern test frameworks (CMake integration, Robot Framework) provide equivalent or superior validation capabilities compared to traditional Perl scripts while improving maintainability and CI/CD integration.
 
 ### V. Standard Project Structure
 
 Examples MUST follow consistent file organization and build system patterns for discoverability and reusability.
 
 **Requirements**:
+
+**Traditional Publisher/Subscriber Examples:**
 - **IDL**: `[ExampleName].idl` - data type definitions
 - **MPC**: `[ExampleName].mpc` - MPC build project with three sub-projects:
   - `*idl`: TypeSupport generation (custom_only = 1)
@@ -104,12 +133,28 @@ Examples MUST follow consistent file organization and build system patterns for 
 - **CMake**: `CMakeLists.txt` - Alternative build using `find_package(OpenDDS REQUIRED)`
 - **Publisher**: `Publisher.cpp` - Publishing application
 - **Subscriber**: `Subscriber.cpp` + `DataReaderListenerImpl.{h,cpp}` - Subscribing application with listener
-- **Test**: `run_test.pl` - Perl test launcher
+- **Test**: Integration test (see Principle IV for options: `run_test.pl`, CMake tests, or modern frameworks)
 - **Config**: `rtps.ini` - RTPS discovery/transport configuration
 - **Docs**: `README.md` - Brief description, build instructions, run instructions
 - **Git Ignore**: `.gitignore` - Ignore patterns for generated files and binaries (see requirements below)
 
-**Rationale**: Consistency enables developers to quickly understand any example, copy patterns to new projects, and switch between build systems. Standard structure supports documentation generation and automated testing.
+**Peer-to-Peer / Hybrid Examples:**
+For examples where participants are both publishers AND subscribers (e.g., file synchronization, distributed state, peer-to-peer messaging):
+- **IDL**: `[ExampleName].idl` - data type definitions
+- **MPC**: `[ExampleName].mpc` - MPC build project with appropriate sub-projects:
+  - `*idl`: TypeSupport generation (custom_only = 1)
+  - `*lib`: Shared library (if components are reusable)
+  - `*[exename]`: Hybrid executable combining pub/sub functionality
+- **CMake**: `CMakeLists.txt` - Alternative build using `find_package(OpenDDS REQUIRED)`
+- **Main Application**: `[ExampleName].cpp` - Hybrid publisher/subscriber application
+- **Listeners**: `*ListenerImpl.{h,cpp}` - DataReader listener implementations
+- **Component Libraries**: Reusable components in separate .h/.cpp files (e.g., monitors, utilities)
+- **Test**: Integration test (see Principle IV) + unit tests in `tests/` subdirectory
+- **Config**: `rtps.ini` - RTPS discovery/transport configuration
+- **Docs**: `README.md` - MUST document hybrid architecture and justify deviation from traditional structure
+- **Git Ignore**: `.gitignore` - Ignore patterns for generated files and binaries
+
+**Rationale**: Consistency enables developers to quickly understand any example, copy patterns to new projects, and switch between build systems. Standard structure supports documentation generation and automated testing. Peer-to-peer examples require different architectural patterns where artificial separation of publishers and subscribers would introduce unnecessary complexity.
 
 ### VI. Version Control Hygiene
 
@@ -214,4 +259,4 @@ This constitution defines the standards for OpenDDS examples in the `DevGuideExa
 - Reviewers verify: IDL-first design, dual discovery support, complete lifecycle, test coverage, standard structure
 - Complexity not justified by teaching value MUST be simplified
 
-**Version**: 1.1.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2025-10-31
+**Version**: 1.2.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2025-11-11
