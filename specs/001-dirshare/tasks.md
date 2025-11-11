@@ -305,32 +305,32 @@ mwc.pl -type gnuace tests.mpc && make
 
 ---
 
-## Phase 8: User Story 6 - Metadata Transfer and Preservation (Priority: P3)
+## Phase 8: User Story 6 - Metadata Transfer and Preservation (Priority: P3) ✅ COMPLETE
 
 **Goal**: Transfer and preserve file metadata (timestamps, size) along with file content
 
 **Independent Test**: Create file with specific metadata, transfer via DirShare, verify metadata preserved on receiving side
 
-### Implementation for User Story 6
+### Implementation for User Story 6 ✅ COMPLETE
 
-- [ ] T119 [P] [US6] Verify FileMetadata includes size, timestamp in all FileEvent publications
-- [ ] T120 [P] [US6] Verify FileContent includes size, timestamp, checksum in publications
-- [ ] T121 [P] [US6] Verify FileChunk includes file_size, timestamp, checksums in publications
-- [ ] T122 [US6] Add timestamp preservation logic to FileContentListenerImpl using ACE or filesystem API
-- [ ] T123 [US6] Add timestamp preservation logic to FileChunkListenerImpl after reassembly
-- [ ] T124 [US6] Add metadata validation in all listeners (size matches actual data, timestamps reasonable)
-- [ ] T125 [US6] Add ACE logging for metadata preservation (original vs preserved timestamps)
+- [X] T119 [P] [US6] Verify FileMetadata includes size, timestamp in all FileEvent publications
+- [X] T120 [P] [US6] Verify FileContent includes size, timestamp, checksum in publications
+- [X] T121 [P] [US6] Verify FileChunk includes file_size, timestamp, checksums in publications
+- [X] T122 [US6] Add timestamp preservation logic to FileContentListenerImpl using ACE or filesystem API
+- [X] T123 [US6] Add timestamp preservation logic to FileChunkListenerImpl after reassembly
+- [X] T124 [US6] Add metadata validation in all listeners (size matches actual data, timestamps reasonable)
+- [X] T125 [US6] Add ACE logging for metadata preservation (original vs preserved timestamps)
 
-### Boost.Test Unit Tests for User Story 6 🎯 NEW
+### Boost.Test Unit Tests for User Story 6 🎯 ✅ COMPLETE
 
-- [ ] T126 [P] [US6] Create Boost.Test suite for metadata preservation in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T127 [P] [US6] Add Boost.Test cases for timestamp extraction (nanosecond precision) in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T128 [P] [US6] Add Boost.Test cases for timestamp preservation on file write in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T129 [P] [US6] Add Boost.Test cases for metadata validation (size, checksum) in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T130 [P] [US6] Add Boost.Test cases for special characters in filenames in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T131 [US6] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
+- [X] T126 [P] [US6] Create Boost.Test suite for metadata preservation in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T127 [P] [US6] Add Boost.Test cases for timestamp extraction (nanosecond precision) in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T128 [P] [US6] Add Boost.Test cases for timestamp preservation on file write in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T129 [P] [US6] Add Boost.Test cases for metadata validation (size, checksum) in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T130 [P] [US6] Add Boost.Test cases for special characters in filenames in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T131 [US6] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
 
-**Checkpoint**: Metadata preservation working with comprehensive Boost.Test coverage
+**Checkpoint**: Metadata preservation working with comprehensive Boost.Test coverage ✅
 
 ---
 
@@ -392,7 +392,7 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T169 [P] Add Robot test for US3: Real-Time File Modification Propagation (3 scenarios)
 - [ ] T170 [P] Add Robot test for US4: Real-Time File Deletion Propagation (3 scenarios)
 - [ ] T171 [P] Add Robot test for US5: Concurrent Modification Conflict Resolution (3 scenarios)
-- [ ] T172 [P] Add Robot test for US6: Metadata Transfer and Preservation (3 scenarios)
+- [X] T172 [P] Add Robot test for US6: Metadata Transfer and Preservation (3 scenarios)
 - [ ] T173 Create PerformanceTests.robot test suite for Success Criteria SC-001 to SC-011
 - [ ] T174 [P] Add Robot test for SC-001: Initial sync of 100 files within 30 seconds
 - [ ] T175 [P] Add Robot test for SC-002: File creation propagation within 5 seconds

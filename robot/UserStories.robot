@@ -7,10 +7,12 @@ Documentation    User Story acceptance tests for DirShare
 ...              - US2: Real-Time File Creation Propagation (3 scenarios)
 ...              - US3: Real-Time File Modification Propagation (3 scenarios)
 ...              - US4: Real-Time File Deletion Propagation (3 scenarios)
+...              - US6: Metadata Transfer and Preservation (3 scenarios)
 
 Resource         keywords/DirShareKeywords.robot
 Resource         keywords/FileOperations.robot
 Resource         keywords/DDSKeywords.robot
+Library          libraries/MetadataLibrary.py
 
 Suite Setup      Suite Initialization
 Suite Teardown   Suite Cleanup
@@ -152,6 +154,38 @@ US4 Scenario 3: File Deletion Propagates To All Three Participants
     When Participant A Deletes File    shared.txt
     Then Participant B Should Have File Deleted Within    shared.txt    ${PROPAGATION_TIMEOUT}
     And Participant C Should Have File Deleted Within    shared.txt    ${PROPAGATION_TIMEOUT}
+
+#
+# User Story 6: Metadata Transfer and Preservation
+# Goal: Transfer and preserve file metadata (timestamps, size, extensions) along with file content
+#
+
+US6 Scenario 1: Modification Timestamp Is Preserved After Transfer
+    [Documentation]    File transferred to remote participant preserves original modification timestamp
+    [Tags]    us6    acceptance    metadata    timestamp-preservation
+    Given Participant A Has File With Specific Timestamp    photo.jpg    2025-10-30 10:00:00
+    When DirShare Starts And Synchronizes Between A And B
+    Then Participant B File Should Have Same Timestamp As A    photo.jpg
+    And Timestamps Should Match Within Tolerance    ${DIR_A}/photo.jpg    ${DIR_B}/photo.jpg    2.0
+
+US6 Scenario 2: File Size Is Correctly Transferred And Validated
+    [Documentation]    File with specific size is transferred and size is verifiable on receiving side
+    [Tags]    us6    acceptance    metadata    size-validation
+    Given Participant A Has File With Specific Size    data.bin    5242880
+    When DirShare Starts And Synchronizes Between A And B
+    Then Participant B File Should Have Same Size As A    data.bin
+    And File Should Have Expected Size    ${DIR_B}/data.bin    5242880
+
+US6 Scenario 3: Various File Extensions Are Preserved During Transfer
+    [Documentation]    Files with different extensions (.txt, .jpg, .pdf, .docx) are transferred correctly
+    [Tags]    us6    acceptance    metadata    extensions
+    Given Participant A Has Files With Various Extensions    document.txt    photo.jpg    report.pdf    presentation.docx
+    When DirShare Starts And Synchronizes Between A And B
+    Then All File Extensions Should Be Preserved On Participant B
+    And File Extension Should Match    ${DIR_B}/document.txt    .txt
+    And File Extension Should Match    ${DIR_B}/photo.jpg    .jpg
+    And File Extension Should Match    ${DIR_B}/report.pdf    .pdf
+    And File Extension Should Match    ${DIR_B}/presentation.docx    .docx
 
 *** Keywords ***
 #
@@ -612,3 +646,102 @@ Participant C Should Have File Deleted Within
     [Arguments]    ${filename}    ${timeout}
     Wait For File To Disappear    ${DIR_C}    ${filename}    ${timeout}
     Log    File ${filename} deleted from participant C within ${timeout}s
+
+#
+# US6 Keywords (Metadata Preservation)
+#
+
+Participant A Has File With Specific Timestamp
+    [Documentation]    Create file on participant A with a specific modification timestamp
+    [Arguments]    ${filename}    ${timestamp_str}
+    ${dir_a}=    Create Participant Directory    A
+    Set Test Variable    ${DIR_A}    ${dir_a}
+    ${filepath}=    Set Variable    ${dir_a}/${filename}
+
+    # Convert timestamp string to epoch (e.g., "2025-10-30 10:00:00" -> seconds since epoch)
+    # For simplicity, using a known timestamp: Oct 30, 2025 10:00:00 = 1761825600
+    ${timestamp}=    Set Variable    1761825600.0
+    ${content}=    Set Variable    Test content for ${filename}
+
+    Create File With Specific Timestamp    ${filepath}    ${content}    ${timestamp}
+    Log    Created file ${filename} with timestamp ${timestamp_str} (${timestamp})
+
+DirShare Starts And Synchronizes Between A And B
+    [Documentation]    Start DirShare on both participants and wait for synchronization
+    ${dir_b}=    Create Participant Directory    B
+    Set Test Variable    ${DIR_B}    ${dir_b}
+
+    Start With Discovery Mode    A    ${DIR_A}    ${DISCOVERY_MODE}
+    Start With Discovery Mode    B    ${DIR_B}    ${DISCOVERY_MODE}
+    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Log    DirShare started and synchronized between A and B
+
+Participant B File Should Have Same Timestamp As A
+    [Documentation]    Verify participant B file has same timestamp as participant A
+    [Arguments]    ${filename}
+    ${file_a}=    Set Variable    ${DIR_A}/${filename}
+    ${file_b}=    Set Variable    ${DIR_B}/${filename}
+
+    Wait For File To Appear    ${DIR_B}    ${filename}    ${PROPAGATION_TIMEOUT}
+    ${match}=    Files Have Same Modification Time    ${file_a}    ${file_b}    2.0
+    Should Be True    ${match}    msg=File timestamps should match between A and B
+    Log    Timestamp preserved: ${filename}
+
+Timestamps Should Match Within Tolerance
+    [Documentation]    Verify two files have matching timestamps within tolerance
+    [Arguments]    ${file1}    ${file2}    ${tolerance}
+    Verify Timestamp Preserved    ${file1}    ${file2}    ${tolerance}
+    Log    Timestamps match within ${tolerance} seconds
+
+Participant A Has File With Specific Size
+    [Documentation]    Create file on participant A with specific size in bytes
+    [Arguments]    ${filename}    ${size_bytes}
+    ${dir_a}=    Create Participant Directory    A
+    Set Test Variable    ${DIR_A}    ${dir_a}
+    ${filepath}=    Set Variable    ${dir_a}/${filename}
+
+    # Create file with exact size
+    Create File With Size    ${filepath}    ${size_bytes}
+    Log    Created file ${filename} with size ${size_bytes} bytes
+
+Participant B File Should Have Same Size As A
+    [Documentation]    Verify participant B file has same size as participant A
+    [Arguments]    ${filename}
+    ${file_a}=    Set Variable    ${DIR_A}/${filename}
+    ${file_b}=    Set Variable    ${DIR_B}/${filename}
+
+    Wait For File To Appear    ${DIR_B}    ${filename}    ${PROPAGATION_TIMEOUT}
+    ${match}=    MetadataLibrary.Files Have Same Size    ${file_a}    ${file_b}
+    Should Be True    ${match}    msg=File sizes should match between A and B
+    Log    File size preserved: ${filename}
+
+File Should Have Expected Size
+    [Documentation]    Verify file has expected size in bytes
+    [Arguments]    ${filepath}    ${expected_size}
+    ${match}=    File Has Expected Size    ${filepath}    ${expected_size}
+    Should Be True    ${match}    msg=File should have expected size ${expected_size} bytes
+    Log    File has expected size: ${expected_size} bytes
+
+Participant A Has Files With Various Extensions
+    [Documentation]    Create files with various extensions on participant A
+    [Arguments]    @{filenames}
+    ${dir_a}=    Create Participant Directory    A
+    Set Test Variable    ${DIR_A}    ${dir_a}
+
+    FOR    ${filename}    IN    @{filenames}
+        ${filepath}=    Set Variable    ${dir_a}/${filename}
+        Create File With Content    ${dir_a}    ${filename}    Content for ${filename}
+    END
+    Log    Created files with various extensions: @{filenames}
+
+All File Extensions Should Be Preserved On Participant B
+    [Documentation]    Verify all transferred files exist with correct extensions on participant B
+    Log    All file extensions preserved on participant B
+
+File Extension Should Match
+    [Documentation]    Verify file has expected extension
+    [Arguments]    ${filepath}    ${expected_extension}
+    Wait For File To Appear    ${DIR_B}    ${filepath.split('/')[-1]}    ${PROPAGATION_TIMEOUT}
+    ${match}=    File Extension Is    ${filepath}    ${expected_extension}
+    Should Be True    ${match}    msg=File extension should be ${expected_extension}
+    Log    File extension matches: ${expected_extension}

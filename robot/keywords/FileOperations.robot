@@ -4,6 +4,7 @@ Library          OperatingSystem
 Library          String
 Library          DateTime
 Library          ../libraries/ChecksumLibrary.py
+Library          ../libraries/MetadataLibrary.py
 
 *** Keywords ***
 Create File With Content
@@ -178,3 +179,21 @@ Create Test Files
         Create File With Content    ${directory}    ${filename}    ${content}
     END
     Log    Created ${count} test files in ${directory}
+
+Create File With Specific Timestamp
+    [Documentation]    Create a file with specific content and modification timestamp
+    [Arguments]    ${filepath}    ${content}    ${timestamp}
+    Create File    ${filepath}    ${content}
+    MetadataLibrary.Set File Modification Time    ${filepath}    ${timestamp}
+    Log    Created file ${filepath} with timestamp ${timestamp}
+    RETURN    ${filepath}
+
+Create File With Size
+    [Documentation]    Create a file with exact size in bytes
+    [Arguments]    ${filepath}    ${size_bytes}
+    # Create file using dd for exact byte size
+    Run    dd if=/dev/zero of=${filepath} bs=${size_bytes} count=1 2>/dev/null
+    ${actual_size}=    Get File Size    ${filepath}
+    Should Be Equal As Integers    ${actual_size}    ${size_bytes}    msg=Created file should have exact size
+    Log    Created file ${filepath} with exact size ${size_bytes} bytes
+    RETURN    ${filepath}
