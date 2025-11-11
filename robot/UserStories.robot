@@ -6,6 +6,7 @@ Documentation    User Story acceptance tests for DirShare
 ...              - US1: Initial Directory Synchronization (3 scenarios)
 ...              - US2: Real-Time File Creation Propagation (3 scenarios)
 ...              - US3: Real-Time File Modification Propagation (3 scenarios)
+...              - US4: Real-Time File Deletion Propagation (3 scenarios)
 
 Resource         keywords/DirShareKeywords.robot
 Resource         keywords/FileOperations.robot
@@ -18,7 +19,7 @@ Test Teardown    Teardown Test Environment
 
 *** Variables ***
 ${DISCOVERY_MODE}    inforepo    # Can be overridden: --variable DISCOVERY_MODE:rtps
-${SYNC_TIMEOUT}      10          # Seconds to wait for initial synchronization and DDS discovery
+${SYNC_TIMEOUT}      35          # Seconds to wait for initial synchronization and DDS discovery (30s discovery timeout + 5s sync)
 ${PROPAGATION_TIMEOUT}    5     # Seconds to wait for file propagation (FileMonitor polls every 2s + transfer time)
 ${FILEMONITOR_INTERVAL}    3     # Wait for FileMonitor polling interval (2s) plus buffer
 
@@ -123,6 +124,35 @@ US3 Scenario 3: Timestamp Based Conflict Resolution
     And Participant B Modifies File Later    conflict.txt    B's version
     Then Both Participants Should Converge To Latest Version    conflict.txt    B's version
 
+#
+# User Story 4: Real-Time File Deletion Propagation
+# Goal: Automatically delete files on all participants when deleted on one machine
+#
+
+US4 Scenario 1: Single File Deletion Propagates Within 5 Seconds
+    [Documentation]    Delete file on one participant, verify it's deleted on other within 5s
+    [Tags]    us4    acceptance    file-deletion    performance
+    Given DirShare Is Running With Synchronized File    temp.txt
+    When Participant A Deletes File    temp.txt
+    Then Participant B Should Have File Deleted Within    temp.txt    ${PROPAGATION_TIMEOUT}
+    And File Should Not Exist On Both Participants    temp.txt
+
+US4 Scenario 2: Multiple Files Deleted While Others Remain
+    [Documentation]    Delete 2 out of 5 files, verify only those 2 are deleted
+    [Tags]    us4    acceptance    file-deletion    selective-deletion
+    Given DirShare Is Running With Multiple Synchronized Files    file1.txt    file2.txt    file3.txt    file4.txt    file5.txt
+    When Participant A Deletes Multiple Files    file2.txt    file4.txt
+    Then Participant B Should Have Files Deleted    file2.txt    file4.txt
+    And Participant B Should Still Have Files    file1.txt    file3.txt    file5.txt
+
+US4 Scenario 3: File Deletion Propagates To All Three Participants
+    [Documentation]    Delete file with 3 participants, verify deleted from all
+    [Tags]    us4    acceptance    file-deletion    multi-participant
+    Given DirShare Is Running On Three Participants With Synchronized File    shared.txt
+    When Participant A Deletes File    shared.txt
+    Then Participant B Should Have File Deleted Within    shared.txt    ${PROPAGATION_TIMEOUT}
+    And Participant C Should Have File Deleted Within    shared.txt    ${PROPAGATION_TIMEOUT}
+
 *** Keywords ***
 #
 # Given Keywords (Test Setup)
@@ -212,6 +242,25 @@ DirShare Is Running With Multiple Synchronized Files
         Wait For File To Appear    ${dir_b}    ${filename}    ${PROPAGATION_TIMEOUT}
     END
     Log    DirShare running with synchronized files: @{filenames}
+
+DirShare Is Running On Three Participants With Synchronized File
+    [Documentation]    Start with three participants and a synchronized file
+    [Arguments]    ${filename}
+    ${dir_a}=    Create Participant Directory    A
+    ${dir_b}=    Create Participant Directory    B
+    ${dir_c}=    Create Participant Directory    C
+    Set Test Variable    ${DIR_A}    ${dir_a}
+    Set Test Variable    ${DIR_B}    ${dir_b}
+    Set Test Variable    ${DIR_C}    ${dir_c}
+    ${content}=    Set Variable    Initial content of ${filename}
+    Create File With Content    ${dir_a}    ${filename}    ${content}
+    Start With Discovery Mode    A    ${dir_a}    ${DISCOVERY_MODE}
+    Start With Discovery Mode    B    ${dir_b}    ${DISCOVERY_MODE}
+    Start With Discovery Mode    C    ${dir_c}    ${DISCOVERY_MODE}
+    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For File To Appear    ${dir_b}    ${filename}    ${PROPAGATION_TIMEOUT}
+    Wait For File To Appear    ${dir_c}    ${filename}    ${PROPAGATION_TIMEOUT}
+    Log    DirShare running on three participants with synchronized file: ${filename}
 
 #
 # When Keywords (Actions)
@@ -317,6 +366,28 @@ Participant B Modifies File Later
     Modify File Content    ${filepath}    ${content}
     Set Test Variable    ${LATEST_VERSION}    ${content}
     Log    Participant B modified file later: ${filename}
+
+Participant A Deletes File
+    [Documentation]    Delete a file from participant A's directory
+    [Arguments]    ${filename}
+    ${filepath}=    Set Variable    ${DIR_A}/${filename}
+    Delete File    ${filepath}
+    Set Test Variable    ${DELETED_FILE}    ${filename}
+    Log    Participant A deleted file: ${filename}
+    Log    Waiting ${FILEMONITOR_INTERVAL}s for FileMonitor to detect deletion...
+    Sleep    ${FILEMONITOR_INTERVAL}s
+
+Participant A Deletes Multiple Files
+    [Documentation]    Delete multiple files from participant A's directory
+    [Arguments]    @{filenames}
+    FOR    ${filename}    IN    @{filenames}
+        ${filepath}=    Set Variable    ${DIR_A}/${filename}
+        Delete File    ${filepath}
+    END
+    Set Test Variable    @{DELETED_FILES}    @{filenames}
+    Log    Participant A deleted multiple files: @{filenames}
+    Log    Waiting ${FILEMONITOR_INTERVAL}s for FileMonitor to detect deletions...
+    Sleep    ${FILEMONITOR_INTERVAL}s
 
 #
 # Then Keywords (Assertions)
@@ -503,3 +574,41 @@ Both Participants Should Converge To Latest Version
     ${content_b}=    Get File Content    ${file_b}
     Should Be Equal    ${content_a}    ${content_b}    msg=Files should converge to same content
     Log    Both participants converged to latest version: ${filename}
+
+Participant B Should Have File Deleted Within
+    [Documentation]    Verify participant B has file deleted within timeout
+    [Arguments]    ${filename}    ${timeout}
+    Wait For File To Disappear    ${DIR_B}    ${filename}    ${timeout}
+    Log    File ${filename} deleted from participant B within ${timeout}s
+
+File Should Not Exist On Both Participants
+    [Documentation]    Verify file does not exist on both participants
+    [Arguments]    ${filename}
+    ${file_a}=    Set Variable    ${DIR_A}/${filename}
+    ${file_b}=    Set Variable    ${DIR_B}/${filename}
+    File Should Not Exist    ${file_a}
+    File Should Not Exist    ${file_b}
+    Log    File ${filename} does not exist on both participants
+
+Participant B Should Have Files Deleted
+    [Documentation]    Verify multiple files are deleted from participant B
+    [Arguments]    @{filenames}
+    FOR    ${filename}    IN    @{filenames}
+        Wait For File To Disappear    ${DIR_B}    ${filename}    ${PROPAGATION_TIMEOUT}
+    END
+    Log    Files deleted from participant B: @{filenames}
+
+Participant B Should Still Have Files
+    [Documentation]    Verify that specific files still exist on participant B
+    [Arguments]    @{filenames}
+    FOR    ${filename}    IN    @{filenames}
+        ${filepath}=    Set Variable    ${DIR_B}/${filename}
+        File Should Exist    ${filepath}
+    END
+    Log    Participant B still has files: @{filenames}
+
+Participant C Should Have File Deleted Within
+    [Documentation]    Verify participant C has file deleted within timeout
+    [Arguments]    ${filename}    ${timeout}
+    Wait For File To Disappear    ${DIR_C}    ${filename}    ${timeout}
+    Log    File ${filename} deleted from participant C within ${timeout}s

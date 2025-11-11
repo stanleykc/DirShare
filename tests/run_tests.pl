@@ -53,6 +53,7 @@ print "${YELLOW}--- Phase 2: Foundation Tests ---${NC}\n\n";
 $status |= run_test("ChecksumBoostTest", "ChecksumBoostTest");
 $status |= run_test("FileUtilsBoostTest", "FileUtilsBoostTest");
 $status |= run_test("FileMonitorBoostTest", "FileMonitorBoostTest");
+$status |= run_test("FileChangeTrackerBoostTest", "FileChangeTrackerBoostTest");
 
 print "${YELLOW}--- Phase 3: User Story 1 (Initial Sync) Tests ---${NC}\n\n";
 
@@ -60,6 +61,23 @@ print "${YELLOW}--- Phase 3: User Story 1 (Initial Sync) Tests ---${NC}\n\n";
 $status |= run_test("DirectorySnapshotBoostTest", "DirectorySnapshotBoostTest");
 $status |= run_test("FileContentBoostTest", "FileContentBoostTest");
 $status |= run_test("FileChunkBoostTest", "FileChunkBoostTest");
+
+print "${YELLOW}--- Phase 4: User Story 2 (File Creation) Tests ---${NC}\n\n";
+
+# Run Phase 4 Boost.Test suites (US2 - Real-Time File Creation)
+$status |= run_test("FileMonitorCreateBoostTest", "FileMonitorCreateBoostTest");
+$status |= run_test("FileEventCreateBoostTest", "FileEventCreateBoostTest");
+
+print "${YELLOW}--- Phase 5: User Story 3 (File Modification) Tests ---${NC}\n\n";
+
+# Run Phase 5 Boost.Test suites (US3 - Real-Time File Modification)
+$status |= run_test("FileEventModifyBoostTest", "FileEventModifyBoostTest");
+$status |= run_test("TimestampComparisonBoostTest", "TimestampComparisonBoostTest");
+
+print "${YELLOW}--- Phase 6: User Story 4 (File Deletion) Tests ---${NC}\n\n";
+
+# Run Phase 6 Boost.Test suites (US4 - Real-Time File Deletion)
+$status |= run_test("FileEventDeleteBoostTest", "FileEventDeleteBoostTest");
 
 # Summary
 print "╔══════════════════════════════════════════════╗\n";

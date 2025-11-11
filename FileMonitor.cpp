@@ -104,6 +104,15 @@ bool FileMonitor::scan_for_changes(
   for (std::map<std::string, FileState>::const_iterator it = previous_state_.begin();
        it != previous_state_.end(); ++it) {
     const std::string& filename = it->first;
+
+    // SC-011: Check if notifications are suppressed for this file
+    if (change_tracker_.is_suppressed(filename)) {
+      ACE_DEBUG((LM_DEBUG,
+                ACE_TEXT("FileMonitor: Skipping suppressed file '%C' for DELETE detection (remote update in progress)\n"),
+                filename.c_str()));
+      continue;  // Skip this file - it's being deleted from remote
+    }
+
     if (current_state.find(filename) == current_state.end()) {
       // File existed in previous state but not in current - DELETED
       deleted_files.push_back(filename);

@@ -249,7 +249,7 @@ mwc.pl -type gnuace tests.mpc && make
 
 ---
 
-## Phase 6: User Story 4 - Real-Time File Deletion Propagation (Priority: P2)
+## Phase 6: User Story 4 - Real-Time File Deletion Propagation (Priority: P2) ✅ COMPLETE
 
 **Goal**: Automatically delete files on all participants when deleted on one machine
 
@@ -257,24 +257,24 @@ mwc.pl -type gnuace tests.mpc && make
 
 ### Implementation for User Story 4
 
-- [ ] T095 [US4] Add file deletion detection to FileMonitor.cpp (file present in previous scan, absent in current)
-- [ ] T096 [US4] Implement publish FileEvent(DELETE) when file deletion detected in FileMonitor
-- [ ] T097 [US4] Add FileEvent DELETE handling in FileEventListenerImpl (check timestamp, delete local file)
-- [ ] T098 [US4] Add timestamp comparison for delete events (respect last-write-wins for delete vs modify conflicts)
-- [ ] T099 [US4] Add error handling for deletion failures (file in use, permission denied) in FileEventListenerImpl
-- [ ] T100 [US4] Add ACE logging for deletion events (detected, published, received, applied)
+- [X] T095 [US4] Add file deletion detection to FileMonitor.cpp (file present in previous scan, absent in current)
+- [X] T096 [US4] Implement publish FileEvent(DELETE) when file deletion detected in FileMonitor
+- [X] T097 [US4] Add FileEvent DELETE handling in FileEventListenerImpl (check timestamp, delete local file)
+- [X] T098 [US4] Add timestamp comparison for delete events (respect last-write-wins for delete vs modify conflicts)
+- [X] T099 [US4] Add error handling for deletion failures (file in use, permission denied) in FileEventListenerImpl
+- [X] T100 [US4] Add ACE logging for deletion events (detected, published, received, applied)
 
-### Boost.Test Unit Tests for User Story 4 🎯 NEW
+### Boost.Test Unit Tests for User Story 4 🎯 NEW ✅ COMPLETE
 
-- [ ] T101 [P] [US4] Create Boost.Test suite for FileEvent DELETE in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T102 [P] [US4] Add Boost.Test cases for deletion detection in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T103 [P] [US4] Add Boost.Test cases for DELETE event publishing in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T104 [P] [US4] Add Boost.Test cases for DELETE event handling in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T105 [P] [US4] Add Boost.Test cases for delete-modify conflict resolution in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T106 [P] [US4] Add Boost.Test cases for deletion error handling in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T107 [US4] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
+- [X] T101 [P] [US4] Create Boost.Test suite for FileEvent DELETE in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T102 [P] [US4] Add Boost.Test cases for deletion detection in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T103 [P] [US4] Add Boost.Test cases for DELETE event publishing in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T104 [P] [US4] Add Boost.Test cases for DELETE event handling in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T105 [P] [US4] Add Boost.Test cases for delete-modify conflict resolution in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T106 [P] [US4] Add Boost.Test cases for deletion error handling in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T107 [US4] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
 
-**Checkpoint**: File deletion propagation working with comprehensive Boost.Test coverage
+**Checkpoint**: File deletion propagation working with comprehensive Boost.Test coverage ✅
 
 ---
 
