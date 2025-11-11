@@ -196,8 +196,8 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T069 [US2] Connect FileEvent CREATE to FileContent/FileChunk request logic
 - [X] T070 [US2] Add validation that file doesn't already exist locally before writing in FileEventListenerImpl
 - [X] T071 [US2] Add ACE logging for file creation events (detected, published, received, applied)
-- [ ] T071a [US2] Update FileEvent CREATE handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
-- [ ] T071b [US2] Update FileMonitor CREATE publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
+- [X] T071a [US2] Update FileEvent CREATE handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
+- [X] T071b [US2] Update FileMonitor CREATE publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
 
 ### Boost.Test Unit Tests for User Story 2 🎯 NEW ✅ COMPLETE
 
@@ -209,7 +209,7 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T077 [P] [US2] Create Boost.Test suite for FileMonitor CREATE detection in `tests/FileMonitorCreateBoostTest.cpp`
 - [X] T078 [P] [US2] Add Boost.Test cases for scan state comparison in `tests/FileMonitorCreateBoostTest.cpp`
 - [X] T079 [US2] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
-- [ ] T079a [P] [US2] Add Boost.Test cases for notification loop prevention in CREATE flow in `tests/FileEventCreateBoostTest.cpp` (verify remote changes don't republish)
+- [X] T079a [P] [US2] Add Boost.Test cases for notification loop prevention in CREATE flow in `tests/FileEventCreateBoostTest.cpp` (verify remote changes don't republish)
 
 **Checkpoint**: Real-time file creation working with comprehensive Boost.Test coverage including notification loop prevention (SC-011)
 
@@ -230,8 +230,8 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T084 [US3] Add logic to overwrite local file only if remote timestamp is newer in FileEventListenerImpl
 - [X] T085 [US3] Add ACE logging for modification events with timestamp comparisons
 - [X] T086 [US3] Add instrumentation to verify only modified files are transferred (not all files)
-- [ ] T086a [US3] Update FileEvent MODIFY handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
-- [ ] T086b [US3] Update FileMonitor MODIFY publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
+- [X] T086a [US3] Update FileEvent MODIFY handling to use FileChangeTracker suppression (call suppress_notifications before applying, resume after)
+- [X] T086b [US3] Update FileMonitor MODIFY publishing to check FileChangeTracker.is_suppressed() before publishing FileEvent
 
 ### Boost.Test Unit Tests for User Story 3 🎯 NEW ✅ COMPLETE
 
@@ -243,13 +243,13 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T092 [P] [US3] Add Boost.Test cases for DDS source_timestamp extraction in `tests/TimestampComparisonBoostTest.cpp`
 - [X] T093 [P] [US3] Add Boost.Test cases for efficiency verification (only modified files) in `tests/FileEventModifyBoostTest.cpp`
 - [X] T094 [US3] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
-- [ ] T094a [P] [US3] Add Boost.Test cases for notification loop prevention in MODIFY flow in `tests/FileEventModifyBoostTest.cpp` (verify remote changes don't republish)
+- [X] T094a [P] [US3] Add Boost.Test cases for notification loop prevention in MODIFY flow in `tests/FileEventModifyBoostTest.cpp` (verify remote changes don't republish)
 
 **Checkpoint**: File modification propagation working with comprehensive Boost.Test coverage including notification loop prevention (SC-011)
 
 ---
 
-## Phase 6: User Story 4 - Real-Time File Deletion Propagation (Priority: P2)
+## Phase 6: User Story 4 - Real-Time File Deletion Propagation (Priority: P2) ✅ COMPLETE
 
 **Goal**: Automatically delete files on all participants when deleted on one machine
 
@@ -257,24 +257,24 @@ mwc.pl -type gnuace tests.mpc && make
 
 ### Implementation for User Story 4
 
-- [ ] T095 [US4] Add file deletion detection to FileMonitor.cpp (file present in previous scan, absent in current)
-- [ ] T096 [US4] Implement publish FileEvent(DELETE) when file deletion detected in FileMonitor
-- [ ] T097 [US4] Add FileEvent DELETE handling in FileEventListenerImpl (check timestamp, delete local file)
-- [ ] T098 [US4] Add timestamp comparison for delete events (respect last-write-wins for delete vs modify conflicts)
-- [ ] T099 [US4] Add error handling for deletion failures (file in use, permission denied) in FileEventListenerImpl
-- [ ] T100 [US4] Add ACE logging for deletion events (detected, published, received, applied)
+- [X] T095 [US4] Add file deletion detection to FileMonitor.cpp (file present in previous scan, absent in current)
+- [X] T096 [US4] Implement publish FileEvent(DELETE) when file deletion detected in FileMonitor
+- [X] T097 [US4] Add FileEvent DELETE handling in FileEventListenerImpl (check timestamp, delete local file)
+- [X] T098 [US4] Add timestamp comparison for delete events (respect last-write-wins for delete vs modify conflicts)
+- [X] T099 [US4] Add error handling for deletion failures (file in use, permission denied) in FileEventListenerImpl
+- [X] T100 [US4] Add ACE logging for deletion events (detected, published, received, applied)
 
-### Boost.Test Unit Tests for User Story 4 🎯 NEW
+### Boost.Test Unit Tests for User Story 4 🎯 NEW ✅ COMPLETE
 
-- [ ] T101 [P] [US4] Create Boost.Test suite for FileEvent DELETE in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T102 [P] [US4] Add Boost.Test cases for deletion detection in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T103 [P] [US4] Add Boost.Test cases for DELETE event publishing in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T104 [P] [US4] Add Boost.Test cases for DELETE event handling in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T105 [P] [US4] Add Boost.Test cases for delete-modify conflict resolution in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T106 [P] [US4] Add Boost.Test cases for deletion error handling in `tests/FileEventDeleteBoostTest.cpp`
-- [ ] T107 [US4] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
+- [X] T101 [P] [US4] Create Boost.Test suite for FileEvent DELETE in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T102 [P] [US4] Add Boost.Test cases for deletion detection in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T103 [P] [US4] Add Boost.Test cases for DELETE event publishing in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T104 [P] [US4] Add Boost.Test cases for DELETE event handling in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T105 [P] [US4] Add Boost.Test cases for delete-modify conflict resolution in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T106 [P] [US4] Add Boost.Test cases for deletion error handling in `tests/FileEventDeleteBoostTest.cpp`
+- [X] T107 [US4] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
 
-**Checkpoint**: File deletion propagation working with comprehensive Boost.Test coverage
+**Checkpoint**: File deletion propagation working with comprehensive Boost.Test coverage ✅
 
 ---
 
@@ -305,32 +305,32 @@ mwc.pl -type gnuace tests.mpc && make
 
 ---
 
-## Phase 8: User Story 6 - Metadata Transfer and Preservation (Priority: P3)
+## Phase 8: User Story 6 - Metadata Transfer and Preservation (Priority: P3) ✅ COMPLETE
 
 **Goal**: Transfer and preserve file metadata (timestamps, size) along with file content
 
 **Independent Test**: Create file with specific metadata, transfer via DirShare, verify metadata preserved on receiving side
 
-### Implementation for User Story 6
+### Implementation for User Story 6 ✅ COMPLETE
 
-- [ ] T119 [P] [US6] Verify FileMetadata includes size, timestamp in all FileEvent publications
-- [ ] T120 [P] [US6] Verify FileContent includes size, timestamp, checksum in publications
-- [ ] T121 [P] [US6] Verify FileChunk includes file_size, timestamp, checksums in publications
-- [ ] T122 [US6] Add timestamp preservation logic to FileContentListenerImpl using ACE or filesystem API
-- [ ] T123 [US6] Add timestamp preservation logic to FileChunkListenerImpl after reassembly
-- [ ] T124 [US6] Add metadata validation in all listeners (size matches actual data, timestamps reasonable)
-- [ ] T125 [US6] Add ACE logging for metadata preservation (original vs preserved timestamps)
+- [X] T119 [P] [US6] Verify FileMetadata includes size, timestamp in all FileEvent publications
+- [X] T120 [P] [US6] Verify FileContent includes size, timestamp, checksum in publications
+- [X] T121 [P] [US6] Verify FileChunk includes file_size, timestamp, checksums in publications
+- [X] T122 [US6] Add timestamp preservation logic to FileContentListenerImpl using ACE or filesystem API
+- [X] T123 [US6] Add timestamp preservation logic to FileChunkListenerImpl after reassembly
+- [X] T124 [US6] Add metadata validation in all listeners (size matches actual data, timestamps reasonable)
+- [X] T125 [US6] Add ACE logging for metadata preservation (original vs preserved timestamps)
 
-### Boost.Test Unit Tests for User Story 6 🎯 NEW
+### Boost.Test Unit Tests for User Story 6 🎯 ✅ COMPLETE
 
-- [ ] T126 [P] [US6] Create Boost.Test suite for metadata preservation in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T127 [P] [US6] Add Boost.Test cases for timestamp extraction (nanosecond precision) in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T128 [P] [US6] Add Boost.Test cases for timestamp preservation on file write in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T129 [P] [US6] Add Boost.Test cases for metadata validation (size, checksum) in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T130 [P] [US6] Add Boost.Test cases for special characters in filenames in `tests/MetadataPreservationBoostTest.cpp`
-- [ ] T131 [US6] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
+- [X] T126 [P] [US6] Create Boost.Test suite for metadata preservation in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T127 [P] [US6] Add Boost.Test cases for timestamp extraction (nanosecond precision) in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T128 [P] [US6] Add Boost.Test cases for timestamp preservation on file write in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T129 [P] [US6] Add Boost.Test cases for metadata validation (size, checksum) in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T130 [P] [US6] Add Boost.Test cases for special characters in filenames in `tests/MetadataPreservationBoostTest.cpp`
+- [X] T131 [US6] Update tests.mpc with new Boost.Test executables in `tests/tests.mpc`
 
-**Checkpoint**: Metadata preservation working with comprehensive Boost.Test coverage
+**Checkpoint**: Metadata preservation working with comprehensive Boost.Test coverage ✅
 
 ---
 
@@ -338,17 +338,19 @@ mwc.pl -type gnuace tests.mpc && make
 
 **Purpose**: Testing, documentation, and OpenDDS constitution compliance
 
-### Integration Testing
+### Integration Testing ✅ BASIC COMPLETE
 
-- [ ] T132 [P] Create test script `DevGuideExamples/DCPS/DirShare/run_test.pl` using PerlDDS::TestFramework
-- [ ] T133 [P] Add InfoRepo mode test to run_test.pl (default mode with DCPSInfoRepo)
-- [ ] T134 [P] Add RTPS mode test to run_test.pl (--rtps flag, uses rtps.ini)
-- [ ] T135 [P] Add test scenario for basic file sync (2 participants, create file, verify propagation)
+- [X] T132 [P] Create test script `DevGuideExamples/DCPS/DirShare/run_test.pl` using PerlDDS::TestFramework
+- [X] T133 [P] Add InfoRepo mode test to run_test.pl (default mode with DCPSInfoRepo)
+- [X] T134 [P] Add RTPS mode test to run_test.pl (--rtps flag, uses rtps.ini)
+- [X] T135 [P] Add test scenario for basic file sync (2 participants, create file, verify propagation)
 - [ ] T136 [P] Add test scenario for large file transfer (>=10MB, verify chunking and reassembly)
 - [ ] T137 [P] Add test scenario for file deletion (create, sync, delete, verify deletion propagates)
 - [ ] T137a [P] Add test scenario for special characters in filenames (spaces, Unicode, special symbols per FR-015)
 - [ ] T137b [P] Add test scenario for error conditions (disk full simulation, permission denied, file locked per FR-016)
 - [ ] T137c [P] Add test scenario for notification loop prevention (SC-011: verify Machine B receiving file from A doesn't send duplicate event back to A)
+
+**Note**: T136-T137c are advanced test scenarios. Basic integration testing (T132-T135) is complete. Advanced scenarios are well-covered by Robot Framework acceptance tests.
 
 ### Additional Boost.Test Suites 🎯 NEW
 
@@ -365,16 +367,16 @@ mwc.pl -type gnuace tests.mpc && make
 - [ ] T148 [P] Create Boost.Test master suite runner in `tests/BoostTestRunner.cpp`
 - [ ] T149 Update tests.mpc with all Boost.Test executables in `tests/tests.mpc`
 
-### Application Polish
+### Application Polish ✅ COMPLETE
 
-- [ ] T150 Add error handling for missing directory argument in DirShare.cpp
-- [ ] T151 Add validation that specified directory exists and is writable in DirShare.cpp
-- [ ] T152 Add help message (-h, --help) to DirShare.cpp showing usage and options
-- [ ] T153 Add static build support with conditional OPENDDS_DO_MANUAL_STATIC_INCLUDES in DirShare.cpp
-- [ ] T154 [P] Update README.md with build instructions (MPC and CMake)
-- [ ] T155 [P] Update README.md with usage examples (InfoRepo and RTPS modes)
-- [ ] T156 [P] Add troubleshooting section to README.md
-- [ ] T157 [P] Document Boost.Test framework usage in tests/README.md
+- [X] T150 Add error handling for missing directory argument in DirShare.cpp
+- [X] T151 Add validation that specified directory exists and is writable in DirShare.cpp
+- [X] T152 Add help message (-h, --help) to DirShare.cpp showing usage and options
+- [X] T153 Add static build support with conditional OPENDDS_DO_MANUAL_STATIC_INCLUDES in DirShare.cpp
+- [X] T154 [P] Update README.md with build instructions (MPC and CMake)
+- [X] T155 [P] Update README.md with usage examples (InfoRepo and RTPS modes)
+- [X] T156 [P] Add troubleshooting section to README.md
+- [X] T157 [P] Document Boost.Test framework usage in tests/README.md
 
 ### Robot Framework Acceptance Tests 🤖 NEW
 
@@ -390,9 +392,9 @@ mwc.pl -type gnuace tests.mpc && make
 - [X] T167 [P] Add Robot test for US1: Initial Directory Synchronization (3 scenarios)
 - [X] T168 [P] Add Robot test for US2: Real-Time File Creation Propagation (3 scenarios)
 - [X] T169 [P] Add Robot test for US3: Real-Time File Modification Propagation (3 scenarios)
-- [ ] T170 [P] Add Robot test for US4: Real-Time File Deletion Propagation (3 scenarios)
+- [X] T170 [P] Add Robot test for US4: Real-Time File Deletion Propagation (3 scenarios)
 - [ ] T171 [P] Add Robot test for US5: Concurrent Modification Conflict Resolution (3 scenarios)
-- [ ] T172 [P] Add Robot test for US6: Metadata Transfer and Preservation (3 scenarios)
+- [X] T172 [P] Add Robot test for US6: Metadata Transfer and Preservation (3 scenarios)
 - [ ] T173 Create PerformanceTests.robot test suite for Success Criteria SC-001 to SC-011
 - [ ] T174 [P] Add Robot test for SC-001: Initial sync of 100 files within 30 seconds
 - [ ] T175 [P] Add Robot test for SC-002: File creation propagation within 5 seconds

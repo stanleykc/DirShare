@@ -284,3 +284,279 @@ BOOST_AUTO_TEST_CASE(test_multiple_create_events)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+// ================================================================================
+// T079a: Notification Loop Prevention Tests for CREATE Flow (SC-011)
+// ================================================================================
+
+#include "../FileChangeTracker.h"
+#include "../FileMonitor.h"
+
+struct NotificationLoopFixture {
+  NotificationLoopFixture()
+    : test_dir("test_loop_prevention_boost")
+    , change_tracker()
+  {
+    ACE_OS::mkdir(test_dir);
+  }
+
+  ~NotificationLoopFixture() {
+    cleanup_directory(test_dir);
+  }
+
+  void cleanup_directory(const char* dir) {
+    std::vector<std::string> files;
+    if (DirShare::list_directory_files(dir, files)) {
+      for (size_t i = 0; i < files.size(); ++i) {
+        std::string path = std::string(dir) + "/" + files[i];
+        ACE_OS::unlink(path.c_str());
+      }
+    }
+    ACE_OS::rmdir(dir);
+  }
+
+  const char* test_dir;
+  DirShare::FileChangeTracker change_tracker;
+};
+
+BOOST_FIXTURE_TEST_SUITE(NotificationLoopPrevention, NotificationLoopFixture)
+
+// Test: Remote CREATE event suppresses notifications
+BOOST_AUTO_TEST_CASE(test_remote_create_suppresses_notifications)
+{
+  std::string filename = "remote_file.txt";
+
+  // Initially, file is not suppressed
+  BOOST_CHECK(!change_tracker.is_suppressed(filename));
+
+  // Simulate receiving remote CREATE event
+  // FileEventListenerImpl::handle_create_event should call suppress_notifications
+  change_tracker.suppress_notifications(filename);
+
+  // Now file should be suppressed
+  BOOST_CHECK(change_tracker.is_suppressed(filename));
+}
+
+// Test: File content arrival resumes notifications
+BOOST_AUTO_TEST_CASE(test_content_arrival_resumes_notifications)
+{
+  std::string filename = "incoming_file.txt";
+
+  // Step 1: Suppress when CREATE event arrives
+  change_tracker.suppress_notifications(filename);
+  BOOST_CHECK(change_tracker.is_suppressed(filename));
+
+  // Step 2: Write file content (simulated)
+  std::string full_path = std::string(test_dir) + "/" + filename;
+  std::ofstream file(full_path.c_str());
+  file << "file content from remote";
+  file.close();
+
+  // Step 3: Resume after writing (FileContentListenerImpl should do this)
+  change_tracker.resume_notifications(filename);
+
+  // Step 4: Verify notifications are resumed
+  BOOST_CHECK(!change_tracker.is_suppressed(filename));
+}
+
+// Test: FileMonitor respects suppression flag
+BOOST_AUTO_TEST_CASE(test_file_monitor_respects_suppression)
+{
+  DirShare::FileMonitor monitor(test_dir, change_tracker, true);
+
+  // Create a file
+  std::string filename = "test_file.txt";
+  std::string full_path = std::string(test_dir) + "/" + filename;
+  std::ofstream file(full_path.c_str());
+  file << "test content";
+  file.close();
+
+  // First scan to establish baseline
+  std::vector<std::string> created, modified, deleted;
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Suppress this file
+  change_tracker.suppress_notifications(filename);
+
+  // Modify the file
+  std::ofstream file2(full_path.c_str(), std::ios::app);
+  file2 << " more content";
+  file2.close();
+
+  // Scan again - file should NOT appear in modified list because it's suppressed
+  created.clear();
+  modified.clear();
+  deleted.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Verify file is NOT in the modified list (suppressed)
+  BOOST_CHECK(std::find(modified.begin(), modified.end(), filename) == modified.end());
+
+  // Resume notifications
+  change_tracker.resume_notifications(filename);
+
+  // Modify again
+  std::ofstream file3(full_path.c_str(), std::ios::app);
+  file3 << " even more";
+  file3.close();
+
+  // Scan again - now file SHOULD appear in modified list
+  created.clear();
+  modified.clear();
+  deleted.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Verify file IS in the modified list (no longer suppressed)
+  BOOST_CHECK(std::find(modified.begin(), modified.end(), filename) != modified.end());
+}
+
+// Test: Complete loop prevention flow
+BOOST_AUTO_TEST_CASE(test_complete_loop_prevention_flow)
+{
+  DirShare::FileMonitor monitor(test_dir, change_tracker, true);
+
+  std::string filename = "remote_create.txt";
+  std::string full_path = std::string(test_dir) + "/" + filename;
+
+  // Initial scan to establish baseline
+  std::vector<std::string> created, modified, deleted;
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Step 1: Receive remote CREATE event -> suppress
+  change_tracker.suppress_notifications(filename);
+  BOOST_CHECK(change_tracker.is_suppressed(filename));
+
+  // Step 2: File content arrives and is written
+  std::ofstream file(full_path.c_str());
+  file << "content from remote machine";
+  file.close();
+
+  // Step 3: Monitor scans but file is suppressed
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Verify file does NOT appear in created list (suppressed)
+  BOOST_CHECK(std::find(created.begin(), created.end(), filename) == created.end());
+
+  // Step 4: Resume after file is written
+  change_tracker.resume_notifications(filename);
+  BOOST_CHECK(!change_tracker.is_suppressed(filename));
+
+  // Step 5: Next scan - file already in previous state, so no CREATE event
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // File should not appear as created (already in previous scan)
+  BOOST_CHECK(std::find(created.begin(), created.end(), filename) == created.end());
+}
+
+// Test: Multiple files with mixed local/remote changes
+BOOST_AUTO_TEST_CASE(test_mixed_local_remote_creates)
+{
+  DirShare::FileMonitor monitor(test_dir, change_tracker, true);
+
+  // Initial scan
+  std::vector<std::string> created, modified, deleted;
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Local file - should be published
+  std::string local_file = "local_create.txt";
+  std::string local_path = std::string(test_dir) + "/" + local_file;
+  std::ofstream lf(local_path.c_str());
+  lf << "local content";
+  lf.close();
+
+  // Remote file - should NOT be published (suppressed)
+  std::string remote_file = "remote_create.txt";
+  std::string remote_path = std::string(test_dir) + "/" + remote_file;
+  change_tracker.suppress_notifications(remote_file);
+  std::ofstream rf(remote_path.c_str());
+  rf << "remote content";
+  rf.close();
+
+  // Scan - should only detect local file
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Verify local file IS in created list
+  BOOST_CHECK(std::find(created.begin(), created.end(), local_file) != created.end());
+
+  // Verify remote file is NOT in created list (suppressed)
+  BOOST_CHECK(std::find(created.begin(), created.end(), remote_file) == created.end());
+
+  // Resume remote file
+  change_tracker.resume_notifications(remote_file);
+
+  // Next scan - both files in previous state, no new creates
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+  BOOST_CHECK(created.empty());
+}
+
+// Test: Suppression prevents duplicate CREATE events
+BOOST_AUTO_TEST_CASE(test_no_duplicate_create_events)
+{
+  DirShare::FileMonitor monitor(test_dir, change_tracker, true);
+
+  std::string filename = "no_duplicate.txt";
+  std::string full_path = std::string(test_dir) + "/" + filename;
+
+  // Initial scan
+  std::vector<std::string> created, modified, deleted;
+  monitor.scan_for_changes(created, modified, deleted);
+
+  // Simulate: Machine B receives CREATE event from Machine A
+  change_tracker.suppress_notifications(filename);
+
+  // File is written by FileContentListener
+  std::ofstream file(full_path.c_str());
+  file << "content";
+  file.close();
+
+  // Scan 1: File is suppressed, should not appear
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+  int first_scan_count = std::count(created.begin(), created.end(), filename);
+  BOOST_CHECK_EQUAL(first_scan_count, 0);  // Not in list (suppressed)
+
+  // Resume notifications
+  change_tracker.resume_notifications(filename);
+
+  // Scan 2: File already in previous state, should not appear as CREATE
+  created.clear();
+  monitor.scan_for_changes(created, modified, deleted);
+  int second_scan_count = std::count(created.begin(), created.end(), filename);
+  BOOST_CHECK_EQUAL(second_scan_count, 0);  // Not in list (already tracked)
+
+  // Total: Zero CREATE events published by Machine B -> Loop prevented!
+  int total_creates = first_scan_count + second_scan_count;
+  BOOST_CHECK_EQUAL(total_creates, 0);
+}
+
+// Test: Early suppression before file arrives
+BOOST_AUTO_TEST_CASE(test_early_suppression)
+{
+  std::string filename = "early_suppress.txt";
+
+  // Suppress BEFORE file exists
+  change_tracker.suppress_notifications(filename);
+  BOOST_CHECK(change_tracker.is_suppressed(filename));
+
+  // File doesn't exist yet
+  std::string full_path = std::string(test_dir) + "/" + filename;
+  BOOST_CHECK(!DirShare::file_exists(full_path));
+
+  // File arrives later
+  std::ofstream file(full_path.c_str());
+  file << "late arrival";
+  file.close();
+
+  // Still suppressed
+  BOOST_CHECK(change_tracker.is_suppressed(filename));
+
+  // Resume when ready
+  change_tracker.resume_notifications(filename);
+  BOOST_CHECK(!change_tracker.is_suppressed(filename));
+}
+
+BOOST_AUTO_TEST_SUITE_END()

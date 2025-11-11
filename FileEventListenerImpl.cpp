@@ -104,6 +104,14 @@ void FileEventListenerImpl::handle_create_event(const FileEvent& event)
     return;
   }
 
+  // Suppress notifications for this file (SC-011: prevent notification loop)
+  // This prevents FileMonitor from republishing a CREATE event when the remote
+  // file content arrives and is written to disk
+  change_tracker_.suppress_notifications(filename);
+  ACE_DEBUG((LM_DEBUG,
+             ACE_TEXT("(%P|%t) Suppressed notifications for incoming file: %C\n"),
+             filename.c_str()));
+
   // File will be received via FileContent or FileChunk topic
   // The listener will handle writing the file when content arrives
   ACE_DEBUG((LM_INFO,
@@ -125,7 +133,12 @@ void FileEventListenerImpl::handle_modify_event(const FileEvent& event)
     ACE_DEBUG((LM_INFO,
                ACE_TEXT("(%P|%t) Local file does not exist, treating MODIFY as CREATE: %C\n"),
                filename.c_str()));
+    // Suppress notifications (SC-011: prevent notification loop)
     // File will be received via FileContent or FileChunk topic
+    change_tracker_.suppress_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Suppressed notifications for incoming MODIFY (treated as CREATE): %C\n"),
+               filename.c_str()));
     return;
   }
 
@@ -164,6 +177,13 @@ void FileEventListenerImpl::handle_modify_event(const FileEvent& event)
     ACE_DEBUG((LM_INFO,
                ACE_TEXT("(%P|%t) Remote file is newer, accepting MODIFY for: %C\n"),
                filename.c_str()));
+    // Suppress notifications (SC-011: prevent notification loop)
+    // This prevents FileMonitor from republishing a MODIFY event when the remote
+    // file content arrives and overwrites the local file
+    change_tracker_.suppress_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Suppressed notifications for incoming MODIFY: %C\n"),
+               filename.c_str()));
     // File will be received via FileContent or FileChunk topic
     // The listener will overwrite the local file
   } else {
@@ -177,15 +197,89 @@ void FileEventListenerImpl::handle_modify_event(const FileEvent& event)
 void FileEventListenerImpl::handle_delete_event(const FileEvent& event)
 {
   std::string filename = event.filename.in();
+  std::string full_path = shared_directory_ + "/" + filename;
 
   ACE_DEBUG((LM_INFO,
-             ACE_TEXT("(%P|%t) Handling DELETE event for: %C (Phase 6 - not yet implemented)\n"),
+             ACE_TEXT("(%P|%t) Handling DELETE event for: %C\n"),
              filename.c_str()));
 
-  // Phase 6 implementation:
-  // - Compare timestamps with local file
-  // - If remote timestamp is newer, delete local file
-  // - Otherwise, ignore
+  // Check if file exists locally
+  if (!file_exists(full_path)) {
+    ACE_DEBUG((LM_INFO,
+               ACE_TEXT("(%P|%t) File does not exist locally, nothing to delete: %C\n"),
+               filename.c_str()));
+    return;
+  }
+
+  // Get local file timestamp for conflict resolution
+  unsigned long long local_timestamp_sec;
+  unsigned long local_timestamp_nsec;
+  if (!get_file_mtime(full_path, local_timestamp_sec, local_timestamp_nsec)) {
+    ACE_ERROR((LM_ERROR,
+               ACE_TEXT("ERROR: %N:%l: Failed to get local file timestamp: %C\n"),
+               full_path.c_str()));
+    return;
+  }
+
+  // Compare timestamps (remote vs local)
+  unsigned long long remote_timestamp_sec = event.timestamp_sec;
+  unsigned long remote_timestamp_nsec = event.timestamp_nsec;
+
+  ACE_DEBUG((LM_INFO,
+             ACE_TEXT("(%P|%t) Timestamp comparison for DELETE of %C:\n")
+             ACE_TEXT("  Local file:  %Q.%09u\n")
+             ACE_TEXT("  Remote DELETE: %Q.%09u\n"),
+             filename.c_str(),
+             local_timestamp_sec, local_timestamp_nsec,
+             remote_timestamp_sec, remote_timestamp_nsec));
+
+  // Check if remote delete is newer than local file
+  // This implements last-write-wins: delete only if DELETE timestamp > local file timestamp
+  bool delete_is_newer = false;
+  if (remote_timestamp_sec > local_timestamp_sec) {
+    delete_is_newer = true;
+  } else if (remote_timestamp_sec == local_timestamp_sec &&
+             remote_timestamp_nsec > local_timestamp_nsec) {
+    delete_is_newer = true;
+  }
+
+  if (delete_is_newer) {
+    ACE_DEBUG((LM_INFO,
+               ACE_TEXT("(%P|%t) Remote DELETE is newer, deleting local file: %C\n"),
+               filename.c_str()));
+
+    // SC-011: Suppress notifications before deleting
+    // This prevents FileMonitor from republishing a DELETE event
+    change_tracker_.suppress_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Suppressed notifications for DELETE: %C\n"),
+               filename.c_str()));
+
+    // Delete the local file
+    if (!delete_file(full_path)) {
+      ACE_ERROR((LM_ERROR,
+                 ACE_TEXT("ERROR: %N:%l: Failed to delete file: %C\n"),
+                 full_path.c_str()));
+      // Resume notifications even on failure to prevent stuck suppression
+      change_tracker_.resume_notifications(filename);
+      return;
+    }
+
+    ACE_DEBUG((LM_INFO,
+               ACE_TEXT("(%P|%t) Successfully deleted file: %C\n"),
+               filename.c_str()));
+
+    // Resume notifications after successful deletion
+    change_tracker_.resume_notifications(filename);
+    ACE_DEBUG((LM_DEBUG,
+               ACE_TEXT("(%P|%t) Resumed notifications after DELETE: %C\n"),
+               filename.c_str()));
+  } else {
+    ACE_DEBUG((LM_INFO,
+               ACE_TEXT("(%P|%t) Local file is newer than DELETE event, ignoring deletion for: %C\n"),
+               filename.c_str()));
+    // Ignore this delete event - local version wins (last-write-wins conflict resolution)
+  }
 }
 
 bool FileEventListenerImpl::is_valid_filename(const std::string& filename) const

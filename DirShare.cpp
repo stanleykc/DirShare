@@ -348,9 +348,9 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     DDS::DataReaderListener_var snapshot_listener =
       new DirShare::SnapshotListenerImpl(g_shared_directory, content_writer, chunk_writer);
     DDS::DataReaderListener_var content_listener =
-      new DirShare::FileContentListenerImpl(g_shared_directory);
+      new DirShare::FileContentListenerImpl(g_shared_directory, change_tracker);
     DDS::DataReaderListener_var chunk_listener =
-      new DirShare::FileChunkListenerImpl(g_shared_directory);
+      new DirShare::FileChunkListenerImpl(g_shared_directory, change_tracker);
 
     // Create DataReaders with listeners
     DDS::DataReader_var event_reader =
@@ -852,11 +852,49 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
           }
         }
 
-        // Handle deleted files (Phase 6 - placeholder)
+        // Handle deleted files (Phase 6)
         for (size_t i = 0; i < deleted_files.size(); ++i) {
+          const std::string& filename = deleted_files[i];
+
           ACE_DEBUG((LM_INFO,
-                     ACE_TEXT("(%P|%t) File DELETE detected: %C (Phase 6 - not yet implemented)\n"),
-                     deleted_files[i].c_str()));
+                     ACE_TEXT("(%P|%t) File DELETE detected: %C\n"),
+                     filename.c_str()));
+
+          // SC-011: Check if notifications are suppressed for this file
+          if (change_tracker.is_suppressed(filename)) {
+            ACE_DEBUG((LM_DEBUG,
+                       ACE_TEXT("Skipping DELETE publication for suppressed file '%C' (remote update)\n"),
+                       filename.c_str()));
+            continue;
+          }
+
+          // Create and publish FileEvent(DELETE)
+          DirShare::FileEvent event;
+          event.filename = filename.c_str();
+          event.operation = DirShare::DELETE;
+          ACE_Time_Value now = ACE_OS::gettimeofday();
+          event.timestamp_sec = static_cast<CORBA::ULongLong>(now.sec());
+          event.timestamp_nsec = static_cast<CORBA::ULong>(now.usec() * 1000);
+
+          // For DELETE, metadata is not applicable (file no longer exists)
+          // Set metadata fields to zero/empty
+          event.metadata.filename = filename.c_str();
+          event.metadata.size = 0;
+          event.metadata.timestamp_sec = 0;
+          event.metadata.timestamp_nsec = 0;
+          event.metadata.checksum = 0;
+
+          ret = typed_event_writer->write(event, DDS::HANDLE_NIL);
+          if (ret != DDS::RETCODE_OK) {
+            ACE_ERROR((LM_ERROR,
+                       ACE_TEXT("ERROR: %N:%l: Failed to publish FileEvent(DELETE): %d\n"),
+                       ret));
+            continue;
+          }
+
+          ACE_DEBUG((LM_INFO,
+                     ACE_TEXT("(%P|%t) Published FileEvent(DELETE) for: %C\n"),
+                     filename.c_str()));
         }
       }
     }

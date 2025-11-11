@@ -125,6 +125,28 @@ perl run_test.pl
 perl run_test.pl --rtps
 ```
 
+### Memory Leak Testing (AddressSanitizer)
+
+Test for memory leaks and memory safety issues:
+
+```bash
+# Quick start
+./build_with_asan.sh    # Build with AddressSanitizer
+./run_leak_tests.sh     # Run all leak tests
+
+# Or run specific tests
+./run_leak_tests.sh unit      # Unit tests only
+./run_leak_tests.sh dirshare  # Integration test only
+```
+
+**See [docs/LEAK_TESTING.md](docs/LEAK_TESTING.md) for detailed guide**
+
+**Features:**
+- AddressSanitizer detects memory errors (buffer overflows, use-after-free, etc.)
+- Automated test runner for unit and integration tests
+- macOS `leaks` tool integration for leak detection
+- Comprehensive documentation and troubleshooting
+
 ### Acceptance Tests (Robot Framework)
 
 Test user stories end-to-end:
@@ -153,6 +175,8 @@ robot --variable DISCOVERY_MODE:rtps UserStories.robot
 - **US1**: Initial Directory Synchronization (3 scenarios)
 - **US2**: Real-Time File Creation Propagation (3 scenarios)
 - **US3**: Real-Time File Modification Propagation (3 scenarios)
+- **US4**: Real-Time File Deletion Propagation (3 scenarios)
+- **US6**: Metadata Transfer and Preservation (3 scenarios)
 
 ## Usage
 
@@ -368,30 +392,32 @@ DirShare/
 
 ## Implementation Status
 
-### Completed (Phase 1-2)
-- ✅ IDL data model definition (FileEvent, FileMetadata, FileContent, FileChunk, DirectorySnapshot)
-- ✅ MPC and CMake build configurations
-- ✅ DDS infrastructure (DomainParticipant, Topics, Publishers, Subscribers)
-- ✅ FileMonitor with polling-based directory scanning
-- ✅ CRC32 checksum utilities with comprehensive test coverage
-- ✅ FileChangeTracker for notification loop prevention
-- ✅ Unit test framework (Boost.Test) with 50+ test cases
-- ✅ Integration test scripts (run_test.pl) for InfoRepo and RTPS modes
-- ✅ Robot Framework acceptance tests for US1, US2, US3
+### Completed Features ✅
+- ✅ **Phase 1-2: Foundation** - IDL, build system, DDS infrastructure, core utilities
+- ✅ **US1: Initial Directory Synchronization** - DirectorySnapshot, FileContent, FileChunk transfer
+- ✅ **US2: Real-Time File Creation** - FileEvent CREATE handling, notification loop prevention
+- ✅ **US3: Real-Time File Modification** - FileEvent MODIFY, timestamp-based conflict resolution
+- ✅ **US4: Real-Time File Deletion** - FileEvent DELETE propagation
+- ✅ **US6: Metadata Preservation** - Timestamp preservation, size validation, extension handling
 
-### In Progress (Phase 3+)
-- 🚧 User Story implementations (US1-US6)
-- 🚧 DDS Listener implementations (FileEvent, FileContent, FileChunk, Snapshot)
-- 🚧 File transfer logic (small files and chunked transfers)
-- 🚧 Initial directory synchronization
-- 🚧 Real-time change propagation
+### Testing Coverage ✅
+- ✅ **Unit Tests**: 100+ Boost.Test cases covering all core components
+  - Checksum, FileUtils, FileMonitor, FileChangeTracker
+  - FileEvent, FileContent, FileChunk, DirectorySnapshot
+  - MetadataPreservation, TimestampComparison
+- ✅ **Robot Framework**: 15+ acceptance test scenarios for US1-US4, US6
+- ✅ **Integration Tests**: Perl-based test runner for InfoRepo and RTPS modes
 
-### Planned
-- 📋 User Story 4: File deletion propagation
-- 📋 User Story 5: Concurrent modification conflict resolution
-- 📋 User Story 6: Complete metadata preservation
-- 📋 Performance optimization and stress testing
-- 📋 Additional Robot Framework test scenarios
+### In Progress 🚧
+- 🚧 **US5: Concurrent Modification Conflict Resolution** - Tie-breaker logic for simultaneous edits
+- 🚧 **Phase 9: Polish** - Integration test runner, performance tests, documentation finalization
+
+### Known Limitations
+- **File Size**: Maximum 1GB per file
+- **Directory Depth**: Single directory level (no recursive subdirectories)
+- **Propagation Latency**: Target 5 seconds for files up to 10MB
+- **Symbolic Links**: Ignored (not synchronized)
+- **US5 Implementation**: Basic last-write-wins implemented, tie-breaker for identical timestamps pending
 
 ## Limitations
 

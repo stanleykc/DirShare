@@ -2,6 +2,7 @@
 #define DIRSHARE_FILE_CHUNK_LISTENER_IMPL_H
 
 #include "DirShareTypeSupportImpl.h"
+#include "FileChangeTracker.h"
 
 #include <dds/DCPS/LocalObject.h>
 #include <dds/DdsDcpsSubscriptionC.h>
@@ -49,7 +50,8 @@ class FileChunkListenerImpl
   : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener>
 {
 public:
-  explicit FileChunkListenerImpl(const std::string& shared_dir);
+  explicit FileChunkListenerImpl(const std::string& shared_dir,
+                                  FileChangeTracker& change_tracker);
 
   virtual ~FileChunkListenerImpl();
 
@@ -81,6 +83,7 @@ public:
 
 private:
   std::string shared_dir_;
+  FileChangeTracker& change_tracker_;  // Reference to shared tracker for loop prevention
   std::map<std::string, ChunkedFile> reassembly_buffer_;
 
   // Process received chunk

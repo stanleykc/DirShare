@@ -2,6 +2,7 @@
 #define DIRSHARE_FILE_CONTENT_LISTENER_IMPL_H
 
 #include "DirShareTypeSupportImpl.h"
+#include "FileChangeTracker.h"
 
 #include <dds/DCPS/LocalObject.h>
 #include <dds/DdsDcpsSubscriptionC.h>
@@ -14,7 +15,8 @@ class FileContentListenerImpl
   : public virtual OpenDDS::DCPS::LocalObject<DDS::DataReaderListener>
 {
 public:
-  explicit FileContentListenerImpl(const std::string& shared_dir);
+  explicit FileContentListenerImpl(const std::string& shared_dir,
+                                    FileChangeTracker& change_tracker);
 
   virtual ~FileContentListenerImpl();
 
@@ -46,6 +48,7 @@ public:
 
 private:
   std::string shared_dir_;
+  FileChangeTracker& change_tracker_;  // Reference to shared tracker for loop prevention
 
   // Process received file content
   void process_file_content(const FileContent& content);
