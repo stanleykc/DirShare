@@ -8,6 +8,46 @@ DirShare is an OpenDDS demonstration of real-time distributed file synchronizati
 
 **Key Technology**: Built on OpenDDS - requires OpenDDS environment to be sourced before building or running.
 
+## SpecKit Development Methodology
+
+This project uses **SpecKit**, a specification-driven development workflow system. SpecKit helps manage feature specifications, implementation plans, and task execution through structured artifacts.
+
+### SpecKit Slash Commands
+
+Available SpecKit commands for managing the development workflow:
+
+- `/speckit.specify` - Create or update feature specifications from natural language descriptions
+- `/speckit.plan` - Execute implementation planning workflow to generate design artifacts
+- `/speckit.tasks` - Generate actionable, dependency-ordered tasks.md from specifications
+- `/speckit.implement` - Execute the implementation plan by processing tasks.md
+- `/speckit.clarify` - Identify underspecified areas and ask targeted clarification questions
+- `/speckit.analyze` - Perform cross-artifact consistency and quality analysis
+- `/speckit.checklist` - Generate custom checklists for current feature
+- `/speckit.constitution` - Create or update project constitution with guiding principles
+
+### SpecKit Artifacts Location
+
+Feature specifications are located in `specs/001-dirshare/`:
+- **spec.md** - Feature specification with user stories and acceptance criteria
+- **plan.md** - Implementation plan and architecture decisions
+- **tasks.md** - Implementation task breakdown with dependencies
+- **data-model.md** - IDL data structures and relationships
+- **checklists/** - Feature-specific checklists
+- **contracts/** - Interface contracts and topic definitions
+
+### Working with SpecKit
+
+When adding new features or making significant changes:
+
+1. Use `/speckit.specify` to create/update the feature specification
+2. Run `/speckit.clarify` if requirements are unclear
+3. Use `/speckit.plan` to generate implementation design
+4. Generate tasks with `/speckit.tasks`
+5. Execute with `/speckit.implement`
+6. Validate with `/speckit.analyze` to check consistency
+
+The `.specify/` directory contains SpecKit configuration and templates.
+
 ## Environment Setup
 
 ### Required Before Any Work
@@ -217,7 +257,20 @@ export DCPS_transport_debug_level=4
 
 ## Development Workflow
 
-### Adding a New Feature
+### Adding a New Feature (SpecKit-Driven)
+
+When adding new features, use the SpecKit workflow:
+
+1. **Specify**: Use `/speckit.specify` to create feature specification
+2. **Plan**: Use `/speckit.plan` to generate implementation design
+3. **Tasks**: Use `/speckit.tasks` to create task breakdown
+4. **Implement**: Use `/speckit.implement` or manually follow tasks
+5. **Test**: Run unit tests and acceptance tests
+6. **Analyze**: Use `/speckit.analyze` to validate consistency
+
+### Manual Implementation Steps
+
+If implementing without SpecKit commands:
 
 1. **Update IDL** (`DirShare.idl`) if new data types needed
 2. **Regenerate build files**: `mwc.pl -type gnuace`
@@ -250,16 +303,17 @@ Build artifacts not found. Ensure you ran `make` successfully and `libDirShare.d
 ### Build Fails After Changing .mpc
 Must regenerate makefiles: `mwc.pl -type gnuace && make clean && make`
 
-## Design Documentation
+## Design Documentation (SpecKit Artifacts)
 
-The `specs/001-dirshare/` directory contains:
-- `spec.md` - Feature specification and user stories
-- `plan.md` - Implementation plan and architecture
-- `data-model.md` - IDL data structures
-- `tasks.md` - Implementation task breakdown
-- `contracts/topics.md` - DDS topic definitions
+The `specs/001-dirshare/` directory contains SpecKit-generated artifacts:
+- `spec.md` - Feature specification and user stories (managed via `/speckit.specify`)
+- `plan.md` - Implementation plan and architecture (generated via `/speckit.plan`)
+- `data-model.md` - IDL data structures and relationships
+- `tasks.md` - Implementation task breakdown (generated via `/speckit.tasks`)
+- `contracts/topics.md` - DDS topic definitions and QoS policies
+- `checklists/` - Feature-specific validation checklists
 
-These documents are useful for understanding design decisions and requirements.
+These documents are the source of truth for design decisions and requirements. Update them using SpecKit commands rather than editing manually to maintain consistency.
 
 ## Key Files
 
