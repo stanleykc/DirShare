@@ -4,6 +4,30 @@
 
 This directory contains Robot Framework acceptance tests for the DirShare distributed file synchronization example. These tests validate the user stories and success criteria defined in the feature specification.
 
+## Quick Start
+
+```bash
+# 1. Ensure OpenDDS environment is sourced
+source $DDS_ROOT/setenv.sh
+
+# 2. Build DirShare
+cd /path/to/DirShare
+make
+
+# 3. Setup Python virtual environment (first time only)
+cd robot
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+
+# 4. Run tests (activate venv if not already active)
+source venv/bin/activate
+robot UserStories.robot
+
+# 5. View results
+open report.html
+```
+
 ## Prerequisites
 
 ### Environment Setup
@@ -16,8 +40,10 @@ This directory contains Robot Framework acceptance tests for the DirShare distri
 
 2. **DirShare Built**: Build the DirShare executable
    ```bash
-   cd DevGuideExamples/DCPS/DirShare
+   cd /path/to/DirShare
    make
+   # Verify the executable exists
+   ls -l dirshare
    ```
 
 3. **Python 3.8+**: Required for Robot Framework
@@ -25,43 +51,77 @@ This directory contains Robot Framework acceptance tests for the DirShare distri
    python3 --version  # Should be 3.8 or later
    ```
 
-### Install Robot Framework
+### Setup Python Virtual Environment and Install Robot Framework
+
+It's recommended to use a virtual environment to isolate dependencies:
 
 ```bash
-cd DevGuideExamples/DCPS/DirShare/robot
+# Navigate to the robot directory
+cd /path/to/DirShare/robot
+
+# Create a virtual environment (if not already created)
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate  # On macOS/Linux
+# OR
+venv\Scripts\activate     # On Windows
+
+# Install Robot Framework and dependencies
 python3 -m pip install -r requirements.txt
+
+# Verify installation
+robot --version
+```
+
+**Note**: When you're done with testing, you can deactivate the virtual environment:
+```bash
+deactivate
 ```
 
 ## Test Structure
 
 ```
-robot/
-├── README.md                      # This file
-├── requirements.txt               # Python dependencies
-├── UserStories.robot              # User story acceptance tests (US1-US6)
-├── PerformanceTests.robot         # Success criteria tests (SC-001 to SC-011)
-├── EdgeCaseTests.robot            # Edge case scenarios
-├── DirShareAcceptance.robot       # Master test suite
-├── keywords/                      # Custom Robot keywords
-│   ├── DirShareKeywords.robot     # DirShare process management
-│   ├── FileOperations.robot       # File system operations
-│   └── DDSKeywords.robot          # DDS-specific operations
-├── libraries/                     # Python keyword libraries
-│   ├── DirShareLibrary.py         # DirShare control library
-│   └── ChecksumLibrary.py         # File checksum utilities
-├── resources/                     # Test resources
-│   ├── test_files/                # Sample files for testing
-│   └── config/                    # Test configuration files
-└── results/                       # Test execution results (gitignored)
+DirShare/                          # Root directory
+├── dirshare                       # DirShare executable (built by make)
+├── rtps.ini                       # RTPS configuration file
+└── robot/                         # Test directory
+    ├── README.md                  # This file
+    ├── requirements.txt           # Python dependencies
+    ├── venv/                      # Python virtual environment (created)
+    ├── UserStories.robot          # User story acceptance tests (US1-US6)
+    ├── PerformanceTests.robot     # Success criteria tests (SC-001 to SC-011)
+    ├── EdgeCaseTests.robot        # Edge case scenarios
+    ├── DirShareAcceptance.robot   # Master test suite
+    ├── keywords/                  # Custom Robot keywords
+    │   ├── DirShareKeywords.robot # DirShare process management
+    │   ├── FileOperations.robot   # File system operations
+    │   └── DDSKeywords.robot      # DDS-specific operations
+    ├── libraries/                 # Python keyword libraries
+    │   ├── DirShareLibrary.py     # DirShare control library (portable)
+    │   └── ChecksumLibrary.py     # File checksum utilities
+    ├── resources/                 # Test resources
+    │   ├── test_files/            # Sample files for testing
+    │   └── config/                # Test configuration files
+    └── results/                   # Test execution results (gitignored)
 ```
 
+**Note on Portability**: The `DirShareLibrary.py` uses portable relative paths based on its own location. It will automatically find the `dirshare` executable two directories up (`../../dirshare` from the library file), making it work regardless of where the DirShare directory is located in your filesystem.
+
 ## Running Tests
+
+**IMPORTANT**: Always activate the virtual environment before running tests:
+
+```bash
+cd /path/to/DirShare/robot
+source venv/bin/activate  # Activate virtual environment first!
+```
 
 ### Run All Tests
 
 ```bash
-cd DevGuideExamples/DCPS/DirShare/robot
-robot .
+# From the robot directory with venv activated
+robot UserStories.robot
 ```
 
 ### Run Specific Test Suite
@@ -70,10 +130,10 @@ robot .
 # User Story tests only
 robot UserStories.robot
 
-# Performance/Success Criteria tests
+# Performance/Success Criteria tests (when available)
 robot PerformanceTests.robot
 
-# Edge case tests
+# Edge case tests (when available)
 robot EdgeCaseTests.robot
 ```
 
@@ -204,12 +264,21 @@ My Custom Keyword
 
 ### Issue: Tests Fail with "DirShare executable not found"
 
-**Solution**: Ensure DirShare is built and in the correct location
+**Solution**: Ensure DirShare is built
 ```bash
-cd DevGuideExamples/DCPS/DirShare
+cd /path/to/DirShare
 make
-ls -l dirshare  # Verify executable exists
+ls -l dirshare  # Verify executable exists in the DirShare root directory
 ```
+
+The DirShare executable should be at `/path/to/DirShare/dirshare` (in the same directory as the source files).
+
+**How it works**: The test library (`DirShareLibrary.py`) automatically finds the executable using a portable relative path:
+- Library location: `DirShare/robot/libraries/DirShareLibrary.py`
+- Executable location: `DirShare/dirshare` (two directories up from the library)
+- This works regardless of where you install DirShare in your filesystem
+
+If you see an error message showing all searched locations, the most likely cause is that the executable hasn't been built yet. Run `make` in the DirShare root directory.
 
 ### Issue: Tests Fail with "DCPSInfoRepo not found" (InfoRepo mode)
 
@@ -285,8 +354,44 @@ robot --outputdir results --loglevel TRACE --report report.html --log log.html .
 - [DirShare Specification](../../../specs/001-dirshare/spec.md)
 - [DirShare Tasks](../../../specs/001-dirshare/tasks.md)
 
+## Typical Workflow
+
+```bash
+# 1. One-time setup (if not already done)
+cd /path/to/DirShare/robot
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+deactivate
+
+# 2. Before each test session
+source $DDS_ROOT/setenv.sh         # Source OpenDDS environment
+cd /path/to/DirShare
+make                                # Rebuild DirShare if needed
+cd robot
+source venv/bin/activate            # Activate Python virtual environment
+
+# 3. Run tests
+robot UserStories.robot
+# OR run specific tests
+robot --test "US1*" UserStories.robot
+robot --variable DISCOVERY_MODE:rtps UserStories.robot
+
+# 4. View results
+open report.html
+
+# 5. When finished
+deactivate                          # Deactivate virtual environment
+```
+
 ## Version History
 
+- **v1.1** (2025-11-11): Updated documentation with accurate paths and setup instructions
+  - Added Quick Start guide
+  - Added Python virtual environment setup instructions
+  - Updated paths to reflect actual DirShare project structure
+  - Added typical workflow section
+  - Improved troubleshooting with accurate paths
 - **v1.0** (2025-10-31): Initial Robot Framework test infrastructure
   - Basic test structure and setup
   - US1-US3 acceptance tests

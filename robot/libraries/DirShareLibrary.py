@@ -36,28 +36,58 @@ class DirShareLibrary:
         self.dcpsinfo_repo_exe = self._find_dcpsinforepo_executable()
 
     def _find_dirshare_executable(self) -> str:
-        """Find the DirShare executable in the build directory."""
-        # Try current directory first
+        """
+        Find the DirShare executable using portable relative paths.
+
+        Directory structure:
+        DirShare/
+        ├── dirshare                    # Executable (target)
+        └── robot/
+            └── libraries/
+                └── DirShareLibrary.py  # This file
+
+        This file is at: robot/libraries/DirShareLibrary.py
+        Executable is at: dirshare (two directories up)
+        """
+        # Get the directory containing this file
+        this_file = os.path.abspath(__file__)
+        libraries_dir = os.path.dirname(this_file)
+        robot_dir = os.path.dirname(libraries_dir)
+        dirshare_root = os.path.dirname(robot_dir)
+
+        # Primary method: Use relative path from this library file
+        # This is portable and works regardless of where DirShare is installed
+        relative_exe_path = os.path.join(dirshare_root, "dirshare")
+
         candidates = [
-            "dirshare",
-            "./dirshare",
-            "../dirshare",
-            "../../dirshare",
-            os.path.join(os.getcwd(), "dirshare"),
+            relative_exe_path,  # Most reliable: ../../dirshare from this file
         ]
 
+        # Fallback methods for different invocation contexts
+        # These handle cases where Robot is invoked from different directories
+        candidates.extend([
+            os.path.join(os.getcwd(), "dirshare"),           # Current directory
+            os.path.join(os.getcwd(), "..", "dirshare"),     # One up from cwd
+            "dirshare",                                       # In PATH or current
+            "./dirshare",                                     # Explicit current
+        ])
+
+        # Try each candidate
         for candidate in candidates:
             if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-                return os.path.abspath(candidate)
+                abs_path = os.path.abspath(candidate)
+                print(f"Found DirShare executable at: {abs_path}")
+                return abs_path
 
-        # Try finding in DevGuideExamples
-        dds_root = os.environ.get('DDS_ROOT')
-        if dds_root:
-            path = os.path.join(dds_root, 'DevGuideExamples', 'DCPS', 'DirShare', 'dirshare')
-            if os.path.isfile(path) and os.access(path, os.X_OK):
-                return path
-
-        raise RuntimeError("DirShare executable not found. Please build it first with 'make' in DevGuideExamples/DCPS/DirShare/")
+        # If not found, provide helpful error message
+        raise RuntimeError(
+            "DirShare executable not found. Please build it first with 'make'.\n"
+            f"This library is at: {this_file}\n"
+            f"Expected executable at: {relative_exe_path}\n"
+            f"Current working directory: {os.getcwd()}\n"
+            f"All searched locations:\n" +
+            "\n".join(f"  - {c}" for c in candidates)
+        )
 
     def _find_dcpsinforepo_executable(self) -> str:
         """Find the DCPSInfoRepo executable."""
