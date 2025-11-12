@@ -115,7 +115,7 @@ Create Empty File
     [Documentation]    Create an empty file
     [Arguments]    ${directory}    ${filename}
     ${filepath}=    Set Variable    ${directory}/${filename}
-    Create File    ${filepath}
+    OperatingSystem.Create File    ${filepath}
     Log    Created empty file ${filepath}
     RETURN    ${filepath}
 
@@ -140,7 +140,7 @@ Modify File Content
     [Documentation]    Modify the content of an existing file
     [Arguments]    ${filepath}    ${new_content}
     File Should Exist    ${filepath}
-    Create File    ${filepath}    ${new_content}
+    OperatingSystem.Create File    ${filepath}    ${new_content}
     Log    Modified file ${filepath} with new content: ${new_content}
 
 Append To File
@@ -279,7 +279,7 @@ Create Test Files
 Create File With Specific Timestamp
     [Documentation]    Create a file with specific content and modification timestamp
     [Arguments]    ${filepath}    ${content}    ${timestamp}
-    Create File    ${filepath}    ${content}
+    OperatingSystem.Create File    ${filepath}    ${content}
     MetadataLibrary.Set File Modification Time    ${filepath}    ${timestamp}
     Log    Created file ${filepath} with timestamp ${timestamp}
     RETURN    ${filepath}
