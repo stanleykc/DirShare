@@ -323,3 +323,10 @@ These documents are the source of truth for design decisions and requirements. U
 - `rtps.ini` - RTPS discovery configuration
 - `tests/tests.mpc` - Test build configuration
 - `robot/UserStories.robot` - Acceptance test cases
+
+## Active Technologies
+- Python 3.x (Robot Framework), C++ (existing DirShare application) + Robot Framework, existing DirShare executable built with OpenDDS, Boost.Test (for unit tests) (002-robustness-testing)
+- Filesystem (test directories), DDS topics (DirShare_FileEvents, DirShare_FileContent, DirShare_FileChunks, DirShare_DirectorySnapshot) (002-robustness-testing)
+
+## Recent Changes
+- 002-robustness-testing: Added Python 3.x (Robot Framework), C++ (existing DirShare application) + Robot Framework, existing DirShare executable built with OpenDDS, Boost.Test (for unit tests)
