@@ -5,6 +5,7 @@ Library          ../resources/config.py
 Library          OperatingSystem
 Library          DateTime
 Library          Collections
+Resource         FileOperations.robot    # For Get File Checksum
 
 *** Keywords ***
 Wait For Synchronization
@@ -86,15 +87,6 @@ Verify File Checksums Match
 
     Log    ✓ All checksums match for ${filename}
 
-Get File Checksum
-    [Documentation]    Calculate CRC32 checksum for a file (internal helper)
-    [Arguments]    ${filepath}
-
-    # This is a placeholder - actual checksum calculation is done by SyncVerifier
-    # We can use the existing ChecksumLibrary
-    ${checksum}=    Evaluate    0
-    RETURN    ${checksum}
-
 Get File Size From Participant
     [Documentation]    Get the size of a file from a participant's directory
     [Arguments]    ${participant_label}    ${filename}
@@ -103,15 +95,6 @@ Get File Size From Participant
     ${filepath}=    Set Variable    ${dir}/${filename}
     ${size}=    OperatingSystem.Get File Size    ${filepath}
     RETURN    ${size}
-
-Directory Should Have File Count
-    [Documentation]    Verify that a directory contains expected number of files
-    [Arguments]    ${directory}    ${expected_count}
-
-    ${actual_count}=    Get File Count    ${directory}
-    Should Be Equal As Integers    ${actual_count}    ${expected_count}
-    ...    msg=Directory ${directory} has ${actual_count} files, expected ${expected_count}
-    Log    ✓ Directory ${directory} has correct file count: ${expected_count}
 
 Get Directory Differences
     [Documentation]    Get detailed differences between two directories

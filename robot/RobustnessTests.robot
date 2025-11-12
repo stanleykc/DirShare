@@ -11,7 +11,7 @@ Documentation    Multi-Participant Robustness Testing for DirShare
 ...              - Multiple/rolling restarts: 30 seconds
 ...              - Sender restart during large file: 60 seconds
 
-Library          libraries/DirShareLibrary.py
+Library          libraries/DirShareLibrary.py    # For Cleanup All Test Directories
 Library          resources/ProcessManager.py
 Library          resources/SyncVerifier.py
 Library          resources/TestFileGenerator.py
