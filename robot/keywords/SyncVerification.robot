@@ -1,7 +1,6 @@
 *** Settings ***
 Documentation    Keywords for verifying directory synchronization in robustness tests
 Library          ../resources/SyncVerifier.py    WITH NAME    SyncLib
-Library          ../resources/config.py
 Library          OperatingSystem
 Library          DateTime
 Library          Collections

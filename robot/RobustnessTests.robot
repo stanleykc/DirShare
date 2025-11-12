@@ -15,7 +15,6 @@ Library          libraries/DirShareLibrary.py    # For Cleanup All Test Director
 Library          resources/ProcessManager.py
 Library          resources/SyncVerifier.py
 Library          resources/TestFileGenerator.py
-Library          resources/config.py
 Library          OperatingSystem
 Library          Process
 Library          String
