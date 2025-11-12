@@ -168,3 +168,42 @@ Wait For File To Appear In All Directories
     END
 
     Log    ✓ File ${filename} appeared in all directories
+
+File Should Exist Within Timeout
+    [Documentation]    Wait for a file to exist within a specified timeout
+    [Arguments]    ${filepath}    ${timeout}=5
+    Wait Until Keyword Succeeds    ${timeout}s    0.5s    File Should Exist    ${filepath}
+    Log    File ${filepath} exists
+
+Wait For File To Appear
+    [Documentation]    Wait for a file to appear in a directory
+    [Arguments]    ${directory}    ${filename}    ${timeout}=5
+    ${filepath}=    Set Variable    ${directory}/${filename}
+    File Should Exist Within Timeout    ${filepath}    ${timeout}
+    Log    File ${filename} appeared in ${directory}
+    RETURN    ${filepath}
+
+Wait For File To Disappear
+    [Documentation]    Wait for a file to be deleted from a directory
+    [Arguments]    ${directory}    ${filename}    ${timeout}=5
+    ${filepath}=    Set Variable    ${directory}/${filename}
+    Wait Until Keyword Succeeds    ${timeout}s    0.5s    File Should Not Exist    ${filepath}
+    Log    File ${filename} disappeared from ${directory}
+
+Wait After Shutdown
+    [Documentation]    Wait a specified time after participant shutdown for stabilization
+    [Arguments]    ${seconds}=2
+    Log    Waiting ${seconds} seconds after shutdown
+    Sleep    ${seconds}s
+
+Wait After Restart
+    [Documentation]    Wait for participant to stabilize after restart
+    [Arguments]    ${seconds}=3
+    Log    Waiting ${seconds} seconds after restart for stabilization
+    Sleep    ${seconds}s
+
+Wait For File Propagation
+    [Documentation]    Wait for file changes to propagate (default 5 seconds per spec)
+    [Arguments]    ${timeout}=5
+    Log    Waiting ${timeout} seconds for file propagation
+    Sleep    ${timeout}s

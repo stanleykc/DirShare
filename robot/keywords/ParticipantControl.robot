@@ -5,6 +5,7 @@ Library          ../libraries/DirShareLibrary.py
 Library          OperatingSystem
 Library          String
 Library          Collections
+Resource         SyncVerification.robot    # For wait keywords
 
 *** Keywords ***
 Start Three Participants
@@ -126,17 +127,3 @@ Get Participant Directory
 
     ${dir}=    Get Test Directory    ${label}
     RETURN    ${dir}
-
-Wait After Shutdown
-    [Documentation]    Wait a specified time after participant shutdown
-    [Arguments]    ${seconds}=2
-
-    Log    Waiting ${seconds} seconds after shutdown
-    Sleep    ${seconds}s
-
-Wait After Restart
-    [Documentation]    Wait for participant to stabilize after restart
-    [Arguments]    ${seconds}=3
-
-    Log    Waiting ${seconds} seconds after restart for stabilization
-    Sleep    ${seconds}s

@@ -5,6 +5,7 @@ Library          String
 Library          DateTime
 Library          ../libraries/ChecksumLibrary.py
 Library          ../libraries/MetadataLibrary.py
+Resource         Utilities.robot    # For Parse Size String
 
 *** Keywords ***
 Create File
@@ -94,15 +95,6 @@ Create Large File For Participant
     Log    Created large file ${filename} (${size}) in participant ${participant_label} directory: ${dir}
     RETURN    ${filepath}
 
-Parse Size String
-    [Documentation]    Parse a size string like "1KB" or "5MB" into value and unit
-    [Arguments]    ${size_string}
-
-    ${size_upper}=    Convert To Upper Case    ${size_string}
-    ${value}=    Evaluate    int(''.join(c for c in '''${size_upper}''' if c.isdigit()))
-    ${unit}=    Evaluate    ''.join(c for c in '''${size_upper}''' if c.isalpha())
-    RETURN    ${value}    ${unit}
-
 Create File With Content
     [Documentation]    Create a file with specified content
     [Arguments]    ${directory}    ${filename}    ${content}
@@ -155,12 +147,6 @@ Delete File
     [Arguments]    ${filepath}
     Remove File    ${filepath}
     Log    Deleted file ${filepath}
-
-File Should Exist Within Timeout
-    [Documentation]    Wait for a file to exist within a specified timeout
-    [Arguments]    ${filepath}    ${timeout}=5
-    Wait Until Keyword Succeeds    ${timeout}s    0.5s    File Should Exist    ${filepath}
-    Log    File ${filepath} exists
 
 File Should Not Exist
     [Documentation]    Verify that a file does not exist
@@ -250,21 +236,6 @@ Copy Files To Directory
         Copy File    ${source}    ${dest}
         Log    Copied ${source} to ${dest}
     END
-
-Wait For File To Appear
-    [Documentation]    Wait for a file to appear in a directory
-    [Arguments]    ${directory}    ${filename}    ${timeout}=5
-    ${filepath}=    Set Variable    ${directory}/${filename}
-    File Should Exist Within Timeout    ${filepath}    ${timeout}
-    Log    File ${filename} appeared in ${directory}
-    RETURN    ${filepath}
-
-Wait For File To Disappear
-    [Documentation]    Wait for a file to be deleted from a directory
-    [Arguments]    ${directory}    ${filename}    ${timeout}=5
-    ${filepath}=    Set Variable    ${directory}/${filename}
-    Wait Until Keyword Succeeds    ${timeout}s    0.5s    File Should Not Exist    ${filepath}
-    Log    File ${filename} disappeared from ${directory}
 
 Create Test Files
     [Documentation]    Create multiple test files in a directory

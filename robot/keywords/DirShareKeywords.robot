@@ -4,6 +4,7 @@ Library          ../libraries/DirShareLibrary.py
 Library          OperatingSystem
 Library          Process
 Library          String
+Resource         SyncVerification.robot    # For wait keywords
 
 *** Keywords ***
 Setup Test Environment
@@ -65,18 +66,6 @@ DirShare Should Not Be Running
     [Arguments]    ${participant_name}
     ${is_running}=    Dirshare Is Running    ${participant_name}
     Should Not Be True    ${is_running}    msg=DirShare should not be running for ${participant_name}
-
-Wait For Synchronization
-    [Documentation]    Wait for DDS participants to discover and synchronize
-    [Arguments]    ${timeout}=10
-    Log    Waiting ${timeout} seconds for synchronization
-    Sleep    ${timeout}s
-
-Wait For File Propagation
-    [Documentation]    Wait for file changes to propagate (default 5 seconds per spec)
-    [Arguments]    ${timeout}=5
-    Log    Waiting ${timeout} seconds for file propagation
-    Sleep    ${timeout}s
 
 Start Participant With InfoRepo
     [Documentation]    Create directory and start DirShare with InfoRepo for a participant
