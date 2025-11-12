@@ -63,15 +63,38 @@ Kill Participant
 
 Restart Participant
     [Documentation]    Restart a participant (shutdown then start)
-    [Arguments]    ${label}    ${directory}=${None}    ${config_file}=rtps.ini
+    ...                If directory not specified, uses the participant's previous directory
+    [Arguments]    ${label}    ${directory}=${EMPTY}    ${config_file}=rtps.ini
 
     Log    Restarting participant ${label}
-    ${pid}=    Restart Participant    ${label}    ${directory}    ${config_file}
+
+    # Call Python method with or without directory parameter
+    ${pid}=    Run Keyword If    '${directory}' == '${EMPTY}'
+    ...    Restart Participant Without Directory    ${label}    ${config_file}
+    ...    ELSE
+    ...    Restart Participant With Directory    ${label}    ${directory}    ${config_file}
+
     Log    Participant ${label} restarted (PID: ${pid})
 
     # Wait for re-initialization and discovery
     Sleep    3s    reason=Wait for participant restart and DDS discovery
 
+    RETURN    ${pid}
+
+Restart Participant Without Directory
+    [Documentation]    Internal helper - restart using previous directory
+    [Arguments]    ${label}    ${config_file}
+
+    # Get previous directory
+    ${dir}=    Get Test Directory    ${label}
+    ${pid}=    Restart Participant    ${label}    ${dir}    ${config_file}
+    RETURN    ${pid}
+
+Restart Participant With Directory
+    [Documentation]    Internal helper - restart with explicit directory
+    [Arguments]    ${label}    ${directory}    ${config_file}
+
+    ${pid}=    Restart Participant    ${label}    ${directory}    ${config_file}
     RETURN    ${pid}
 
 Participant Should Be Running
