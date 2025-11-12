@@ -1,19 +1,28 @@
 *** Settings ***
 Documentation    Keywords for verifying directory synchronization in robustness tests
-Library          ../resources/sync_verifier.py
+Library          ../resources/SyncVerifier.py    WITH NAME    SyncLib
 Library          ../resources/config.py
 Library          OperatingSystem
 Library          DateTime
+Library          Collections
 
 *** Keywords ***
 Wait For Synchronization
     [Documentation]    Wait for directories to synchronize within timeout
-    [Arguments]    ${timeout}    @{directories}
+    ...                Arguments can be participant labels (A, B, C) or directory paths
+    [Arguments]    ${timeout}    @{labels}
 
-    Log    Waiting for synchronization of ${directories} (timeout: ${timeout}s)
+    Log    Waiting for synchronization of ${labels} (timeout: ${timeout}s)
+
+    # Convert labels to directories
+    @{directories}=    Create List
+    FOR    ${label}    IN    @{labels}
+        ${dir}=    Get Test Directory    ${label}
+        Append To List    ${directories}    ${dir}
+    END
 
     ${start_time}=    Get Time    epoch
-    ${success}=    Wait For Synchronization    @{directories}    timeout=${timeout}    poll_interval=1
+    ${success}=    SyncLib.Wait For Synchronization    @{directories}    timeout=${timeout}    poll_interval=1
 
     ${end_time}=    Get Time    epoch
     ${actual_time}=    Evaluate    ${end_time} - ${start_time}
@@ -39,10 +48,18 @@ Directories Should Be Synchronized
     Log    ✓ Directories are synchronized
 
 Verify File Checksums Match
-    [Documentation]    Verify that a file has matching checksums across directories
-    [Arguments]    ${filename}    @{directories}
+    [Documentation]    Verify that a file has matching checksums across participants
+    ...                Arguments can be participant labels (A, B, C) or directory paths
+    [Arguments]    ${filename}    @{labels}
 
-    Log    Verifying checksums for ${filename} across ${directories}
+    Log    Verifying checksums for ${filename} across ${labels}
+
+    # Convert labels to directories
+    @{directories}=    Create List
+    FOR    ${label}    IN    @{labels}
+        ${dir}=    Get Test Directory    ${label}
+        Append To List    ${directories}    ${dir}
+    END
 
     # Build full paths
     @{filepaths}=    Create List
@@ -77,6 +94,15 @@ Get File Checksum
     # We can use the existing ChecksumLibrary
     ${checksum}=    Evaluate    0
     RETURN    ${checksum}
+
+Get File Size From Participant
+    [Documentation]    Get the size of a file from a participant's directory
+    [Arguments]    ${participant_label}    ${filename}
+
+    ${dir}=    Get Test Directory    ${participant_label}
+    ${filepath}=    Set Variable    ${dir}/${filename}
+    ${size}=    OperatingSystem.Get File Size    ${filepath}
+    RETURN    ${size}
 
 Directory Should Have File Count
     [Documentation]    Verify that a directory contains expected number of files

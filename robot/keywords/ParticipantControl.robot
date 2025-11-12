@@ -1,9 +1,10 @@
 *** Settings ***
 Documentation    Keywords for controlling DirShare participants during robustness tests
-Library          ../resources/process_manager.py
+Library          ../resources/ProcessManager.py    WITH NAME    ProcessMgr
 Library          ../libraries/DirShareLibrary.py
 Library          OperatingSystem
 Library          String
+Library          Collections
 
 *** Keywords ***
 Start Three Participants
@@ -16,9 +17,9 @@ Start Three Participants
     ${dir_C}=    Create Test Directory    C
 
     # Start all three participants
-    ${pid_A}=    Start Participant    A    ${dir_A}    ${config_file}
-    ${pid_B}=    Start Participant    B    ${dir_B}    ${config_file}
-    ${pid_C}=    Start Participant    C    ${dir_C}    ${config_file}
+    ${pid_A}=    ProcessMgr.Start Participant    A    ${dir_A}    ${config_file}
+    ${pid_B}=    ProcessMgr.Start Participant    B    ${dir_B}    ${config_file}
+    ${pid_C}=    ProcessMgr.Start Participant    C    ${dir_C}    ${config_file}
 
     Log    Started 3 participants: A (${pid_A}), B (${pid_B}), C (${pid_C})
 
@@ -35,7 +36,7 @@ Start Participants
 
     FOR    ${label}    IN    @{labels}
         ${dir}=    Create Test Directory    ${label}
-        ${pid}=    Start Participant    ${label}    ${dir}    ${config_file}
+        ${pid}=    ProcessMgr.Start Participant    ${label}    ${dir}    ${config_file}
         Log    Started participant ${label} (PID: ${pid}) in ${dir}
         Append To List    ${directories}    ${dir}
     END
@@ -49,7 +50,7 @@ Shutdown Participant
     [Documentation]    Gracefully shutdown a participant using SIGTERM
     [Arguments]    ${label}    ${timeout}=5
 
-    ${success}=    Shutdown Participant    ${label}    ${timeout}
+    ${success}=    ProcessMgr.Shutdown Participant    ${label}    ${timeout}
     Should Be True    ${success}    msg=Failed to shutdown participant ${label} within ${timeout} seconds
     Log    Participant ${label} shutdown successfully
 
@@ -57,7 +58,7 @@ Kill Participant
     [Documentation]    Force kill a participant using SIGKILL
     [Arguments]    ${label}
 
-    ${success}=    Kill Participant    ${label}
+    ${success}=    ProcessMgr.Kill Participant    ${label}
     Should Be True    ${success}    msg=Failed to kill participant ${label}
     Log    Participant ${label} killed
 
@@ -87,21 +88,21 @@ Restart Participant Without Directory
 
     # Get previous directory
     ${dir}=    Get Test Directory    ${label}
-    ${pid}=    Restart Participant    ${label}    ${dir}    ${config_file}
+    ${pid}=    ProcessMgr.Restart Participant    ${label}    ${dir}    ${config_file}
     RETURN    ${pid}
 
 Restart Participant With Directory
     [Documentation]    Internal helper - restart with explicit directory
     [Arguments]    ${label}    ${directory}    ${config_file}
 
-    ${pid}=    Restart Participant    ${label}    ${directory}    ${config_file}
+    ${pid}=    ProcessMgr.Restart Participant    ${label}    ${directory}    ${config_file}
     RETURN    ${pid}
 
 Participant Should Be Running
     [Documentation]    Verify that a participant is currently running
     [Arguments]    ${label}
 
-    ${is_running}=    Is Running    ${label}
+    ${is_running}=    ProcessMgr.Is Running    ${label}
     Should Be True    ${is_running}    msg=Participant ${label} should be running but is not
     Log    Participant ${label} is running
 
@@ -109,7 +110,7 @@ Participant Should Not Be Running
     [Documentation]    Verify that a participant is not running
     [Arguments]    ${label}
 
-    ${is_running}=    Is Running    ${label}
+    ${is_running}=    ProcessMgr.Is Running    ${label}
     Should Not Be True    ${is_running}    msg=Participant ${label} should not be running but is
     Log    Participant ${label} is not running
 
@@ -117,7 +118,7 @@ Stop All Participants
     [Documentation]    Stop all managed participants (for test cleanup)
 
     Log    Stopping all participants
-    Cleanup All
+    ProcessMgr.Cleanup All
 
 Get Participant Directory
     [Documentation]    Get the test directory for a participant

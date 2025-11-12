@@ -61,9 +61,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Implement US1.1: Single Participant Restart With File Creation test in robot/RobustnessTests.robot
-- [ ] T021 [P] [US1] Implement US1.2: Mixed File Operations During Downtime test in robot/RobustnessTests.robot
-- [ ] T022 [P] [US1] Implement US1.3: Multiple Participants Restart Sequentially test in robot/RobustnessTests.robot
+- [X] T020 [P] [US1] Implement US1.1: Single Participant Restart With File Creation test in robot/RobustnessTests.robot
+- [X] T021 [P] [US1] Implement US1.2: Mixed File Operations During Downtime test in robot/RobustnessTests.robot
+- [X] T022 [P] [US1] Implement US1.3: Multiple Participants Restart Sequentially test in robot/RobustnessTests.robot
 
 **Checkpoint**: User Story 1 tests complete - validates basic recovery mechanism (3 test scenarios passing)
 

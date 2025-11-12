@@ -308,3 +308,12 @@ class ProcessManager:
             if self.is_running(label):
                 print(f"Stopping participant {label} during cleanup")
                 self.shutdown_participant(label)
+
+
+# Expose ProcessManager as the library interface for Robot Framework
+# Create a module-level instance/alias so Robot Framework can find the class
+__all__ = ['ProcessManager']
+
+# For Robot Framework to discover the library, we can use the class directly
+# RF will instantiate it when imported
+process_manager = ProcessManager  # Make class available at module level

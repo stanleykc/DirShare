@@ -7,11 +7,107 @@ Library          ../libraries/ChecksumLibrary.py
 Library          ../libraries/MetadataLibrary.py
 
 *** Keywords ***
+Create File
+    [Documentation]    Create a file for a participant with specified size
+    ...                Size can be "1KB", "5MB", etc.
+    [Arguments]    ${participant_label}    ${filename}    ${size}    ${seed}=42
+
+    # Get participant directory
+    ${dir}=    Get Test Directory    ${participant_label}
+
+    # Parse size (e.g., "1KB" -> 1, "5MB" -> 5)
+    ${size_value}    ${size_unit}=    Parse Size String    ${size}
+
+    # Create file based on size unit
+    ${filepath}=    Run Keyword If    '${size_unit}' == 'KB'
+    ...    Create Binary File    ${dir}    ${filename}    ${size_value}
+    ...    ELSE IF    '${size_unit}' == 'MB'
+    ...    Create Large File    ${dir}    ${filename}    ${size_value}
+    ...    ELSE
+    ...    Fail    Unsupported size unit: ${size_unit}
+
+    Log    Created file ${filename} (${size}) in participant ${participant_label} directory: ${dir}
+    RETURN    ${filepath}
+
+Modify File
+    [Documentation]    Modify an existing file for a participant by appending data
+    ...                The size parameter specifies how much data to append
+    [Arguments]    ${participant_label}    ${filename}    ${size}    ${seed}=42
+
+    # Get participant directory
+    ${dir}=    Get Test Directory    ${participant_label}
+    ${filepath}=    Set Variable    ${dir}/${filename}
+
+    # File must exist
+    File Should Exist    ${filepath}    msg=Cannot modify non-existent file ${filename}
+
+    # Parse size to append
+    ${size_value}    ${size_unit}=    Parse Size String    ${size}
+
+    # Convert to bytes
+    ${bytes_to_append}=    Run Keyword If    '${size_unit}' == 'KB'
+    ...    Evaluate    ${size_value} * 1024
+    ...    ELSE IF    '${size_unit}' == 'MB'
+    ...    Evaluate    ${size_value} * 1024 * 1024
+    ...    ELSE
+    ...    Fail    Unsupported size unit: ${size_unit}
+
+    # Create temporary file with data to append
+    ${temp_file}=    Set Variable    ${dir}/.tmp_append_${filename}
+    Run    dd if=/dev/urandom of=${temp_file} bs=1 count=${bytes_to_append} 2>/dev/null
+
+    # Append to original file
+    Run    cat ${temp_file} >> ${filepath}
+
+    # Clean up temp file
+    Remove File    ${temp_file}
+
+    Log    Modified file ${filename} in participant ${participant_label} directory (appended ${size})
+    RETURN    ${filepath}
+
+Delete Participant File
+    [Documentation]    Delete a file from a participant's directory
+    [Arguments]    ${participant_label}    ${filename}
+
+    ${dir}=    Get Test Directory    ${participant_label}
+    ${filepath}=    Set Variable    ${dir}/${filename}
+    Remove File    ${filepath}
+    Log    Deleted file ${filename} from participant ${participant_label} directory
+
+Create Large File For Participant
+    [Documentation]    Create a large file (>=5MB) for a participant with specified size
+    ...                Size can be "5MB", "15MB", etc.
+    [Arguments]    ${participant_label}    ${filename}    ${size}    ${seed}=42
+
+    # Get participant directory
+    ${dir}=    Get Test Directory    ${participant_label}
+
+    # Parse size (e.g., "5MB" -> 5)
+    ${size_value}    ${size_unit}=    Parse Size String    ${size}
+
+    # Verify it's MB
+    Should Be Equal As Strings    ${size_unit}    MB    msg=Create Large File requires MB unit, got ${size_unit}
+
+    # Create large file using the existing keyword
+    ${filepath}=    Create Large File    ${dir}    ${filename}    ${size_value}
+
+    Log    Created large file ${filename} (${size}) in participant ${participant_label} directory: ${dir}
+    RETURN    ${filepath}
+
+Parse Size String
+    [Documentation]    Parse a size string like "1KB" or "5MB" into value and unit
+    [Arguments]    ${size_string}
+
+    ${size_upper}=    Convert To Upper Case    ${size_string}
+    ${value}=    Evaluate    int(''.join(c for c in '''${size_upper}''' if c.isdigit()))
+    ${unit}=    Evaluate    ''.join(c for c in '''${size_upper}''' if c.isalpha())
+    RETURN    ${value}    ${unit}
+
 Create File With Content
     [Documentation]    Create a file with specified content
     [Arguments]    ${directory}    ${filename}    ${content}
     ${filepath}=    Set Variable    ${directory}/${filename}
-    Create File    ${filepath}    ${content}
+    OperatingSystem.Create File    ${filepath}    ${content}
     Log    Created file ${filepath} with content: ${content}
     RETURN    ${filepath}
 
