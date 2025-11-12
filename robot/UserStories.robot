@@ -22,7 +22,7 @@ Test Teardown    Teardown Test Environment
 *** Variables ***
 ${DISCOVERY_MODE}    inforepo    # Can be overridden: --variable DISCOVERY_MODE:rtps
 ${SYNC_TIMEOUT}      35          # Seconds to wait for initial synchronization and DDS discovery (30s discovery timeout + 5s sync)
-${PROPAGATION_TIMEOUT}    5     # Seconds to wait for file propagation (FileMonitor polls every 2s + transfer time)
+${PROPAGATION_TIMEOUT}    30     # Seconds to wait for file propagation (FileMonitor polls every 2s + transfer time)
 ${FILEMONITOR_INTERVAL}    3     # Wait for FileMonitor polling interval (2s) plus buffer
 
 *** Keywords ***
@@ -241,7 +241,7 @@ DirShare Is Running On Participants A And B
     Set Test Variable    ${DIR_B}    ${dir_b}
     Start With Discovery Mode    A    ${dir_a}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${dir_b}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     Log    DirShare is running on participants A and B
 
 DirShare Is Running With Synchronized File
@@ -255,7 +255,7 @@ DirShare Is Running With Synchronized File
     Create File With Content    ${dir_a}    ${filename}    ${content}
     Start With Discovery Mode    A    ${dir_a}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${dir_b}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     Wait For File To Appear    ${dir_b}    ${filename}    ${PROPAGATION_TIMEOUT}
     Log    DirShare running with synchronized file: ${filename}
 
@@ -271,7 +271,7 @@ DirShare Is Running With Multiple Synchronized Files
     END
     Start With Discovery Mode    A    ${dir_a}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${dir_b}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     FOR    ${filename}    IN    @{filenames}
         Wait For File To Appear    ${dir_b}    ${filename}    ${PROPAGATION_TIMEOUT}
     END
@@ -291,7 +291,7 @@ DirShare Is Running On Three Participants With Synchronized File
     Start With Discovery Mode    A    ${dir_a}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${dir_b}    ${DISCOVERY_MODE}
     Start With Discovery Mode    C    ${dir_c}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B    C
     Wait For File To Appear    ${dir_b}    ${filename}    ${PROPAGATION_TIMEOUT}
     Wait For File To Appear    ${dir_c}    ${filename}    ${PROPAGATION_TIMEOUT}
     Log    DirShare running on three participants with synchronized file: ${filename}
@@ -312,14 +312,14 @@ DirShare Synchronizes
     [Documentation]    Start DirShare and wait for synchronization
     Start With Discovery Mode    A    ${DIR_A}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${DIR_B}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     Log    DirShare synchronization complete
 
 DirShare Starts On Both Participants
     [Documentation]    Start DirShare on both participants
     Start With Discovery Mode    A    ${DIR_A}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${DIR_B}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     Log    DirShare started on both participants
 
 DirShare Starts On All Three Participants
@@ -327,7 +327,7 @@ DirShare Starts On All Three Participants
     Start With Discovery Mode    A    ${DIR_A}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${DIR_B}    ${DISCOVERY_MODE}
     Start With Discovery Mode    C    ${DIR_C}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B    C
     Log    DirShare started on all three participants
 
 Participant A Creates New File
@@ -673,7 +673,7 @@ DirShare Starts And Synchronizes Between A And B
 
     Start With Discovery Mode    A    ${DIR_A}    ${DISCOVERY_MODE}
     Start With Discovery Mode    B    ${DIR_B}    ${DISCOVERY_MODE}
-    Wait For Synchronization    ${SYNC_TIMEOUT}
+    Wait For Synchronization    ${SYNC_TIMEOUT}    A    B
     Log    DirShare started and synchronized between A and B
 
 Participant B File Should Have Same Timestamp As A

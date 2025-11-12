@@ -1,0 +1,129 @@
+*** Settings ***
+Documentation    Keywords for controlling DirShare participants during robustness tests
+Library          ../resources/ProcessManager.py    WITH NAME    ProcessMgr
+Library          ../libraries/DirShareLibrary.py
+Library          OperatingSystem
+Library          String
+Library          Collections
+Resource         SyncVerification.robot    # For wait keywords
+
+*** Keywords ***
+Start Three Participants
+    [Documentation]    Start three participants (A, B, C) with RTPS discovery
+    [Arguments]    ${config_file}=rtps.ini
+
+    # Create test directories for all participants
+    ${dir_A}=    Create Test Directory    A
+    ${dir_B}=    Create Test Directory    B
+    ${dir_C}=    Create Test Directory    C
+
+    # Start all three participants
+    ${pid_A}=    ProcessMgr.Start Participant    A    ${dir_A}    ${config_file}
+    ${pid_B}=    ProcessMgr.Start Participant    B    ${dir_B}    ${config_file}
+    ${pid_C}=    ProcessMgr.Start Participant    C    ${dir_C}    ${config_file}
+
+    Log    Started 3 participants: A (${pid_A}), B (${pid_B}), C (${pid_C})
+
+    # Wait for DDS discovery
+    Sleep    3s    reason=Wait for DDS discovery and initial synchronization
+
+    RETURN    ${dir_A}    ${dir_B}    ${dir_C}
+
+Start Participants
+    [Documentation]    Start multiple participants with custom labels
+    [Arguments]    ${config_file}=rtps.ini    @{labels}
+
+    @{directories}=    Create List
+
+    FOR    ${label}    IN    @{labels}
+        ${dir}=    Create Test Directory    ${label}
+        ${pid}=    ProcessMgr.Start Participant    ${label}    ${dir}    ${config_file}
+        Log    Started participant ${label} (PID: ${pid}) in ${dir}
+        Append To List    ${directories}    ${dir}
+    END
+
+    # Wait for DDS discovery
+    Sleep    3s    reason=Wait for DDS discovery
+
+    RETURN    @{directories}
+
+Shutdown Participant
+    [Documentation]    Gracefully shutdown a participant using SIGTERM
+    [Arguments]    ${label}    ${timeout}=5
+
+    ${success}=    ProcessMgr.Shutdown Participant    ${label}    ${timeout}
+    Should Be True    ${success}    msg=Failed to shutdown participant ${label} within ${timeout} seconds
+    Log    Participant ${label} shutdown successfully
+
+Kill Participant
+    [Documentation]    Force kill a participant using SIGKILL
+    [Arguments]    ${label}
+
+    ${success}=    ProcessMgr.Kill Participant    ${label}
+    Should Be True    ${success}    msg=Failed to kill participant ${label}
+    Log    Participant ${label} killed
+
+Restart Participant
+    [Documentation]    Restart a participant (shutdown then start)
+    ...                If directory not specified, uses the participant's previous directory
+    [Arguments]    ${label}    ${directory}=${EMPTY}    ${config_file}=rtps.ini
+
+    Log    Restarting participant ${label}
+
+    # Call Python method with or without directory parameter
+    ${pid}=    Run Keyword If    '${directory}' == '${EMPTY}'
+    ...    Restart Participant Without Directory    ${label}    ${config_file}
+    ...    ELSE
+    ...    Restart Participant With Directory    ${label}    ${directory}    ${config_file}
+
+    Log    Participant ${label} restarted (PID: ${pid})
+
+    # Wait for re-initialization and discovery
+    Sleep    3s    reason=Wait for participant restart and DDS discovery
+
+    RETURN    ${pid}
+
+Restart Participant Without Directory
+    [Documentation]    Internal helper - restart using previous directory
+    [Arguments]    ${label}    ${config_file}
+
+    # Get previous directory
+    ${dir}=    Get Test Directory    ${label}
+    ${pid}=    ProcessMgr.Restart Participant    ${label}    ${dir}    ${config_file}
+    RETURN    ${pid}
+
+Restart Participant With Directory
+    [Documentation]    Internal helper - restart with explicit directory
+    [Arguments]    ${label}    ${directory}    ${config_file}
+
+    ${pid}=    ProcessMgr.Restart Participant    ${label}    ${directory}    ${config_file}
+    RETURN    ${pid}
+
+Participant Should Be Running
+    [Documentation]    Verify that a participant is currently running
+    [Arguments]    ${label}
+
+    ${is_running}=    ProcessMgr.Is Running    ${label}
+    Should Be True    ${is_running}    msg=Participant ${label} should be running but is not
+    Log    Participant ${label} is running
+
+Participant Should Not Be Running
+    [Documentation]    Verify that a participant is not running
+    [Arguments]    ${label}
+
+    ${is_running}=    ProcessMgr.Is Running    ${label}
+    Should Not Be True    ${is_running}    msg=Participant ${label} should not be running but is
+    Log    Participant ${label} is not running
+
+Stop All Participants
+    [Documentation]    Stop all managed participants (for test cleanup)
+
+    Log    Stopping all participants
+    ProcessMgr.Cleanup All
+
+Get Participant Directory
+    [Documentation]    Get the test directory for a participant
+    [Arguments]    ${label}
+
+    ${dir}=    Get Test Directory    ${label}
+    RETURN    ${dir}
