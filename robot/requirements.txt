@@ -3,3 +3,6 @@
 
 # Core Robot Framework (includes Process, OperatingSystem, DateTime libraries)
 robotframework>=6.0
+
+# Process management for robustness testing (shutdown/restart scenarios)
+psutil>=5.9.0
