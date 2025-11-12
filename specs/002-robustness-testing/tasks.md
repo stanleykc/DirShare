@@ -93,7 +93,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Implement US3.1: Sequential Restart With Continuous File Creation test in robot/RobustnessTests.robot
+- [X] T026 [P] [US3] Implement US3.1: Sequential Restart With Continuous File Creation test in robot/RobustnessTests.robot
 - [ ] T027 [P] [US3] Implement US3.2: High-Volume Rolling Restart test with background file creation thread in robot/RobustnessTests.robot
 - [ ] T028 [P] [US3] Implement US3.3: Restart During Active File Reception test in robot/RobustnessTests.robot
 

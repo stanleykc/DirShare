@@ -224,6 +224,77 @@ US1.3: Multiple Participants Restart Sequentially
 
     Log    ✓ US1.3 PASSED: All 5 files synchronized across all participants
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Phase 5: User Story 3 - Rolling Participant Restarts (Priority P3)
+# ═══════════════════════════════════════════════════════════════════════════
+
+US3.1: Sequential Restart With Continuous File Creation
+    [Documentation]    Test rolling restart pattern with file creation between each restart cycle
+    ...
+    ...                Validates that the system maintains synchronization when participants
+    ...                are restarted sequentially (one at a time) with file creation happening
+    ...                during each restart window. Simulates production deployment scenarios.
+    ...
+    ...                Reference: specs/002-robustness-testing/contracts/test-scenarios.md
+    [Tags]    US3    priority-P3    rolling-restart
+
+    # Step 1-2: Start three participants and create baseline file
+    Start Three Participants
+    Wait For Synchronization    ${MULTIPLE_TIMEOUT}    A    B    C
+    Log    ✓ Initial synchronization baseline established
+
+    # Step 3: Create initial file and synchronize
+    Create File    A    initial.txt    1KB    seed=1000
+    Wait For Synchronization    ${MULTIPLE_TIMEOUT}    A    B    C
+    Log    ✓ Baseline file 'initial.txt' synchronized across all participants
+
+    # Step 4-6: Cycle 1 - Restart participant A
+    Shutdown Participant    A
+    Sleep    2s    Allow clean shutdown
+    Restart Participant    A
+    Log    ✓ Participant A restarted (cycle 1)
+
+    # Step 7: Create file during A's recovery
+    Create File    B    after_A_restart.txt    1KB    seed=1001
+    Sleep    2s    Allow file creation to propagate
+    Log    ✓ File created on B during A's recovery
+
+    # Step 8-10: Cycle 2 - Restart participant B
+    Sleep    2s    Stabilization period
+    Shutdown Participant    B
+    Sleep    2s    Allow clean shutdown
+    Restart Participant    B
+    Log    ✓ Participant B restarted (cycle 2)
+
+    # Step 11: Create file during B's recovery
+    Create File    C    after_B_restart.txt    1KB    seed=1002
+    Sleep    2s    Allow file creation to propagate
+    Log    ✓ File created on C during B's recovery
+
+    # Step 12-14: Cycle 3 - Restart participant C
+    Sleep    2s    Stabilization period
+    Shutdown Participant    C
+    Sleep    2s    Allow clean shutdown
+    Restart Participant    C
+    Log    ✓ Participant C restarted (cycle 3)
+
+    # Step 15: Wait for final synchronization
+    ${start_time}=    Get Time    epoch
+    Wait For Synchronization    ${MULTIPLE_TIMEOUT}    A    B    C
+    ${end_time}=    Get Time    epoch
+    ${actual_sync_time}=    Evaluate    ${end_time} - ${start_time}
+
+    Log    ✓ Final synchronization achieved in ${actual_sync_time} seconds
+    Should Be True    ${actual_sync_time} <= ${MULTIPLE_TIMEOUT}
+    ...    msg=Synchronization took ${actual_sync_time}s, expected <= ${MULTIPLE_TIMEOUT}s
+
+    # Verify all three files exist with correct checksums
+    Verify File Checksums Match    initial.txt    A    B    C
+    Verify File Checksums Match    after_A_restart.txt    A    B    C
+    Verify File Checksums Match    after_B_restart.txt    A    B    C
+
+    Log    ✓ US3.1 PASSED: All files synchronized through rolling restart cycle
+
 *** Keywords ***
 Setup Robustness Test Suite
     [Documentation]    Initialize the test suite (runs once before all tests)
